@@ -176,9 +176,10 @@
         }
 
         .canvas-overlay span {
-            font-size: 18px;
+            font-size: 48px;
+            font-weight: 900;
             color: #c0b090;
-            letter-spacing: 4px
+            letter-spacing: 8px
         }
 
         .draw-controls {
@@ -316,17 +317,18 @@
         .reveal-art-area .bg-img {
             position: absolute;
             inset: 0;
-            width: 100%;
+            left: 5%;
+            width: 90%;
             height: 100%;
-            object-fit: cover
+            object-fit: contain
         }
 
         .reveal-art-area .art-img {
             position: absolute;
-            bottom: 0;
+            bottom: 10%;
             left: 50%;
             transform: translateX(-50%);
-            height: 90%;
+            height: 80%;
             object-fit: contain;
             object-position: bottom center
         }
@@ -523,30 +525,31 @@
         .mini-card .mc-bg {
             position: absolute;
             inset: 0;
-            width: 100%;
+            left: 5%;
+            width: 90%;
             height: 100%;
-            object-fit: cover
+            object-fit: contain
         }
 
         .mini-card .mc-art {
             position: absolute;
-            bottom: 0;
+            bottom: 10%;
             left: 50%;
             transform: translateX(-50%);
-            height: 85%;
+            height: 80%;
             object-fit: contain;
             object-position: bottom center
         }
 
         .mini-card .mc-name {
             position: absolute;
-            bottom: 0;
+            bottom: 5%;
             left: 0;
             right: 0;
             text-align: center;
-            font-size: 12px;
+            font-size: 16px;
             font-weight: 700;
-            color: #fff;
+            color: #ffffff;
             text-shadow: 0 1px 4px rgba(0, 0, 0, .8);
             padding: 2px;
             background: linear-gradient(transparent, rgba(0, 0, 0, .6));
@@ -692,21 +695,21 @@
         }
 
         .collection-item .ci-avatar {
-            width: 56px;
-            height: 56px;
+            width: 52px;
+            height: 52px;
             border-radius: 50%;
             object-fit: cover;
             position: absolute;
-            top: 50%;
+            top: 40%;
             left: 50%;
             transform: translate(-50%, -50%)
         }
 
         .collection-item .ci-frame {
             width: 72px;
-            height: 72px;
+            height: 70px;
             position: absolute;
-            top: 50%;
+            top: 40%;
             left: 50%;
             transform: translate(-50%, -50%);
             pointer-events: none
@@ -714,11 +717,11 @@
 
         .collection-item .ci-name {
             position: absolute;
-            bottom: 1px;
+            bottom: 0;
             left: 0;
             right: 0;
             text-align: center;
-            font-size: 11px;
+            font-size: 14px;
             font-weight: 600;
             line-height: 1.2;
             overflow: hidden;
@@ -798,17 +801,18 @@
         .modal-art-area .ma-bg {
             position: absolute;
             inset: 0;
-            width: 100%;
+            left: 5%;
+            width: 90%;
             height: 100%;
-            object-fit: cover
+            object-fit: contain
         }
 
         .modal-art-area .ma-art {
             position: absolute;
-            bottom: 0;
+            bottom: 10%;
             left: 50%;
             transform: translateX(-50%);
-            height: 90%;
+            height: 80%;
             object-fit: contain;
             object-position: bottom center
         }
@@ -831,8 +835,10 @@
         }
 
         .modal-info .mi-name {
+            color: #ffffff;
             font-size: 28px;
             font-weight: 900;
+            letter-spacing: 4px;
             margin-bottom: 4px
         }
 
@@ -987,35 +993,36 @@
         }
 
         .pool-item .pi-avatar {
-            width: 56px;
-            height: 56px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             object-fit: cover;
             position: absolute;
-            top: 50%;
+            top: 40%;
             left: 50%;
             transform: translate(-50%, -50%)
         }
 
         .pool-item .pi-frame {
-            width: 72px;
-            height: 72px;
+            width: 60px;
+            height: 60px;
             position: absolute;
-            top: 50%;
+            top: 40%;
             left: 50%;
             transform: translate(-50%, -50%);
             pointer-events: none
         }
 
         .pool-item .pi-name {
+            color: #ffffff;
             position: absolute;
-            bottom: 1px;
+            bottom: 0;
             left: 0;
             right: 0;
             text-align: center;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
-            color: var(--text-light);
+            line-height: 1.2;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -1299,17 +1306,15 @@
         <div class="content">
             <div class="tab-content active" id="tab-gacha">
                 <div class="draw-section">
-                    <div class="draw-hint">请绘图</div>
                     <div class="canvas-wrapper">
                         <canvas id="drawCanvas" width="456" height="400"></canvas>
-                        <div class="canvas-overlay" id="canvasOverlay"><span>落笔绘画</span></div>
+                        <div class="canvas-overlay" id="canvasOverlay"><span>请着墨</span></div>
                     </div>
                     <div class="draw-controls">
                         <div class="mode-toggle">
                             <button class="mode-btn active" data-mode="1" onclick="setMode(1)">画一张</button>
                             <button class="mode-btn" data-mode="10" onclick="setMode(10)">画十张</button>
                         </div>
-                        <button class="clear-btn" onclick="clearCanvas()">清空</button>
                         <button class="pool-toggle" id="poolToggle" onclick="openPool()">角色池</button>
                     </div>
                     <div class="quick-stats" id="quickStats"></div>
