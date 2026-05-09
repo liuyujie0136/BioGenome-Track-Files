@@ -392,11 +392,12 @@
         }
 
         .reveal-name {
+            color: #ffffff;
             font-size: 32px;
             font-weight: 900;
             letter-spacing: 4px;
             margin-bottom: 4px;
-            opacity: 0;
+            opacity: 1;
             transform: translateY(10px);
             transition: opacity .4s .2s, transform .4s .2s
         }
@@ -1349,8 +1350,7 @@
             <div class="new-tag" id="revealNew" style="display:none">NEW</div>
         </div>
         <div class="reveal-name" id="revealName"></div>
-        <div class="reveal-hint" id="revealHint">点击立绘查看下一个</div>
-        <div class="reveal-actions"><button class="reveal-skip-btn" onclick="skipAll()">跳过，直接展示</button></div>
+        <div class="reveal-actions"><button class="reveal-skip-btn" onclick="skipAll()">跳过</button></div>
     </div>
 
     <!-- ALL RESULTS -->
