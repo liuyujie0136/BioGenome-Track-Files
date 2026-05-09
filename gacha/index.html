@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+    <title>Jiangnan Gacha Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent
+        }
+
+        :root {
+            --bg-paper: #f5f0e8;
+            --bg-dark: #2c1810;
+            --text-dark: #3d2b1f;
+            --text-light: #d4c4a8;
+            --accent-red: #8b2500;
+            --accent-gold: #c9a84c;
+            --gold: #ffd700;
+            --blue: #4a90d9;
+            --green: #4caf50;
+            --border-light: #d4c4a8;
+            --card-bg: #faf6ef
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'STSong', 'SimSun', serif;
+            background: var(--bg-paper);
+            color: var(--text-dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+            user-select: none
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at 20% 50%, rgba(201, 168, 76, .06) 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, rgba(139, 37, 0, .04) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0
+        }
+
+        .app {
+            position: relative;
+            z-index: 1;
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c1810, #4a2c1a 50%, #2c1810);
+            color: var(--text-light);
+            padding: 18px 16px 14px;
+            text-align: center;
+            position: relative;
+            overflow: hidden
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5L35 15L30 12L25 15Z' fill='rgba(201,168,76,.08)'/%3E%3C/svg%3E") repeat;
+            pointer-events: none
+        }
+
+        .header h1 {
+            font-size: 26px;
+            font-weight: 900;
+            letter-spacing: 8px;
+            color: var(--accent-gold);
+            text-shadow: 0 2px 8px rgba(0, 0, 0, .3);
+            position: relative
+        }
+
+        .header .subtitle {
+            font-size: 12px;
+            color: var(--text-light);
+            opacity: .7;
+            margin-top: 2px;
+            letter-spacing: 3px
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: #3d2b1f;
+            border-bottom: 2px solid var(--accent-gold);
+            position: sticky;
+            top: 0;
+            z-index: 50
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 11px 4px;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: .3s;
+            border-bottom: 3px solid transparent;
+            letter-spacing: 1px
+        }
+
+        .nav-tab:hover {
+            background: rgba(201, 168, 76, .1)
+        }
+
+        .nav-tab.active {
+            color: var(--accent-gold);
+            border-bottom-color: var(--accent-gold);
+            background: rgba(201, 168, 76, .15)
+        }
+
+        .content {
+            padding: 12px
+        }
+
+        .tab-content {
+            display: none
+        }
+
+        .tab-content.active {
+            display: block
+        }
+
+        /* DRAWING */
+        .draw-section {
+            text-align: center
+        }
+
+        .draw-hint {
+            font-size: 13px;
+            color: #8b7355;
+            margin-bottom: 8px;
+            letter-spacing: 1px
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, .08), inset 0 0 60px rgba(245, 240, 232, .5);
+            margin: 0 auto
+        }
+
+        #drawCanvas {
+            display: block;
+            width: 100%;
+            cursor: crosshair;
+            touch-action: none
+        }
+
+        .canvas-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            opacity: .3;
+            transition: opacity .3s
+        }
+
+        .canvas-overlay.hidden {
+            opacity: 0
+        }
+
+        .canvas-overlay span {
+            font-size: 18px;
+            color: #c0b090;
+            letter-spacing: 4px
+        }
+
+        .draw-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap
+        }
+
+        .mode-toggle {
+            display: flex;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-light)
+        }
+
+        .mode-btn {
+            padding: 7px 14px;
+            border: none;
+            background: var(--card-bg);
+            font-family: inherit;
+            font-size: 13px;
+            cursor: pointer;
+            color: var(--text-dark);
+            transition: .2s
+        }
+
+        .mode-btn.active {
+            background: var(--accent-red);
+            color: #fff
+        }
+
+        .clear-btn {
+            padding: 7px 14px;
+            border: 1px solid #ccc;
+            background: #fff;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 12px;
+            cursor: pointer;
+            color: #999;
+            transition: .2s
+        }
+
+        .clear-btn:hover {
+            border-color: #e74c3c;
+            color: #e74c3c
+        }
+
+        .pool-toggle {
+            padding: 7px 14px;
+            border: 1px solid var(--accent-gold);
+            background: transparent;
+            color: var(--accent-gold);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 12px;
+            cursor: pointer;
+            transition: .2s
+        }
+
+        .pool-toggle:hover {
+            background: rgba(201, 168, 76, .15)
+        }
+
+        .pool-toggle.active {
+            background: var(--accent-gold);
+            color: #fff
+        }
+
+        .quick-stats {
+            display: flex;
+            gap: 6px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+            justify-content: center
+        }
+
+        .stat-chip {
+            padding: 5px 10px;
+            background: rgba(201, 168, 76, .1);
+            border: 1px solid rgba(201, 168, 76, .3);
+            border-radius: 16px;
+            font-size: 12px
+        }
+
+        .stat-chip strong {
+            color: var(--accent-red)
+        }
+
+        /* REVEAL - artwork with background */
+        .reveal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: linear-gradient(180deg, #1a0e08, #2c1810 30%, #3d2b1f);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center
+        }
+
+        .reveal-overlay.show {
+            display: flex
+        }
+
+        .reveal-counter {
+            font-size: 14px;
+            color: var(--accent-gold);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            opacity: .8
+        }
+
+        .reveal-art-area {
+            position: relative;
+            width: 280px;
+            height: 400px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            border-radius: 12px;
+            overflow: hidden;
+            opacity: 0;
+            transform: scale(.92);
+            transition: opacity .5s ease, transform .5s ease
+        }
+
+        .reveal-art-area.visible {
+            opacity: 1;
+            transform: scale(1)
+        }
+
+        .reveal-art-area .bg-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover
+        }
+
+        .reveal-art-area .art-img {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 90%;
+            object-fit: contain;
+            object-position: bottom center
+        }
+
+        .reveal-art-area .new-tag {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #e74c3c;
+            color: #fff;
+            font-size: 13px;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-weight: 700;
+            animation: newPulse 1s ease-in-out infinite;
+            z-index: 2
+        }
+
+        @keyframes newPulse {
+
+            0%,
+            100% {
+                transform: scale(1)
+            }
+
+            50% {
+                transform: scale(1.1)
+            }
+        }
+
+        .reveal-art-area .sparkles {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: var(--gold);
+            border-radius: 50%;
+            animation: sparkleAnim 1.5s ease-out forwards
+        }
+
+        @keyframes sparkleAnim {
+            0% {
+                opacity: 1;
+                transform: scale(0) translate(0, 0)
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1) translate(var(--tx), var(--ty))
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(.5) translate(calc(var(--tx)*2), calc(var(--ty)*2))
+            }
+        }
+
+        .reveal-name {
+            font-size: 32px;
+            font-weight: 900;
+            letter-spacing: 4px;
+            margin-bottom: 4px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity .4s .2s, transform .4s .2s
+        }
+
+        .reveal-name.visible {
+            opacity: 1;
+            transform: translateY(0)
+        }
+
+        .reveal-name.tian {
+            color: #ffd700;
+            text-shadow: 0 2px 12px rgba(255, 215, 0, .5)
+        }
+
+        .reveal-name.hou {
+            color: #6ab0ff;
+            text-shadow: 0 2px 12px rgba(74, 144, 217, .4)
+        }
+
+        .reveal-name.qing {
+            color: #81c784;
+            text-shadow: 0 2px 12px rgba(76, 175, 80, .4)
+        }
+
+        .reveal-hint {
+            font-size: 13px;
+            color: rgba(212, 196, 168, .5);
+            letter-spacing: 2px;
+            margin-top: 8px;
+            animation: hintBlink 2s ease-in-out infinite
+        }
+
+        @keyframes hintBlink {
+
+            0%,
+            100% {
+                opacity: .3
+            }
+
+            50% {
+                opacity: .7
+            }
+        }
+
+        .reveal-actions {
+            margin-top: 8px
+        }
+
+        .reveal-skip-btn {
+            padding: 8px 24px;
+            border: 1px solid rgba(201, 168, 76, .4);
+            background: transparent;
+            color: var(--accent-gold);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 13px;
+            cursor: pointer;
+            transition: .2s;
+            letter-spacing: 2px
+        }
+
+        .reveal-skip-btn:hover {
+            background: rgba(201, 168, 76, .15)
+        }
+
+        /* ALL RESULTS */
+        .all-results-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: linear-gradient(180deg, #1a0e08, #2c1810 30%, #3d2b1f);
+            overflow-y: auto;
+            padding: 16px
+        }
+
+        .all-results-overlay.show {
+            display: block
+        }
+
+        .all-results-title {
+            text-align: center;
+            font-size: 18px;
+            color: var(--accent-gold);
+            letter-spacing: 4px;
+            margin-bottom: 16px
+        }
+
+        .all-results-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            max-width: 480px;
+            margin: 0 auto 20px
+        }
+
+        .mini-card {
+            aspect-ratio: 3/4;
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: .3s;
+            position: relative;
+            animation: miniIn .3s ease-out both
+        }
+
+        .mini-card:hover {
+            transform: translateY(-3px)
+        }
+
+        @keyframes miniIn {
+            from {
+                opacity: 0;
+                transform: scale(.8)
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1)
+            }
+        }
+
+        .mini-card .mc-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover
+        }
+
+        .mini-card .mc-art {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 85%;
+            object-fit: contain;
+            object-position: bottom center
+        }
+
+        .mini-card .mc-name {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, .8);
+            padding: 2px;
+            background: linear-gradient(transparent, rgba(0, 0, 0, .6));
+            z-index: 1
+        }
+
+        .mini-card .mc-new {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: #e74c3c;
+            color: #fff;
+            font-size: 7px;
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-weight: 700;
+            z-index: 2
+        }
+
+        .mini-card.tian {
+            border: 2px solid var(--gold);
+            box-shadow: 0 0 10px rgba(255, 215, 0, .3)
+        }
+
+        .mini-card.hou {
+            border: 2px solid var(--blue)
+        }
+
+        .mini-card.qing {
+            border: 2px solid var(--green)
+        }
+
+        .all-results-close {
+            display: block;
+            margin: 0 auto;
+            padding: 10px 40px;
+            border: 1px solid rgba(201, 168, 76, .4);
+            background: transparent;
+            color: var(--accent-gold);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 15px;
+            cursor: pointer;
+            letter-spacing: 4px;
+            transition: .2s
+        }
+
+        .all-results-close:hover {
+            background: rgba(201, 168, 76, .15)
+        }
+
+        /* COLLECTION */
+        .collection-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px
+        }
+
+        .collection-header h2 {
+            font-size: 18px;
+            color: var(--accent-red)
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 5px
+        }
+
+        .filter-btn {
+            padding: 5px 12px;
+            border: 1px solid var(--border-light);
+            background: var(--card-bg);
+            border-radius: 16px;
+            font-family: inherit;
+            font-size: 12px;
+            cursor: pointer;
+            transition: .2s;
+            color: var(--text-dark)
+        }
+
+        .filter-btn:hover {
+            border-color: var(--accent-gold)
+        }
+
+        .filter-btn.active {
+            background: var(--accent-red);
+            color: #fff;
+            border-color: var(--accent-red)
+        }
+
+        .collection-progress {
+            margin-bottom: 12px;
+            padding: 10px 14px;
+            background: var(--card-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-light)
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e8dcc8;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 6px
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-red), var(--accent-gold));
+            border-radius: 4px;
+            transition: width .5s
+        }
+
+        .collection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+            gap: 6px
+        }
+
+        .collection-item {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: .2s;
+            position: relative;
+            overflow: hidden
+        }
+
+        .collection-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .12)
+        }
+
+        .collection-item.locked {
+            opacity: .4;
+            filter: grayscale(.8)
+        }
+
+        .collection-item .ci-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            object-fit: cover;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%)
+        }
+
+        .collection-item .ci-frame {
+            width: 72px;
+            height: 72px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none
+        }
+
+        .collection-item .ci-name {
+            position: absolute;
+            bottom: 1px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 1.2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding: 0 2px
+        }
+
+        .collection-item .ci-count {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: rgba(0, 0, 0, .6);
+            color: #fff;
+            font-size: 7px;
+            padding: 0 3px;
+            border-radius: 0 8px 0 4px
+        }
+
+        .collection-item.tian {
+            background: rgba(255, 215, 0, .1)
+        }
+
+        .collection-item.hou {
+            background: rgba(74, 144, 217, .08)
+        }
+
+        .collection-item.qing {
+            background: rgba(76, 175, 80, .08)
+        }
+
+        /* DETAIL MODAL - artwork with background */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(44, 24, 16, .9);
+            z-index: 300;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px)
+        }
+
+        .modal-overlay.show {
+            display: flex
+        }
+
+        .modal-content {
+            max-width: 320px;
+            width: 90%;
+            text-align: center;
+            animation: modalIn .3s ease-out;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #2c1810
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(.9)
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1)
+            }
+        }
+
+        .modal-art-area {
+            position: relative;
+            width: 100%;
+            height: 360px;
+            overflow: hidden
+        }
+
+        .modal-art-area .ma-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover
+        }
+
+        .modal-art-area .ma-art {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 90%;
+            object-fit: contain;
+            object-position: bottom center
+        }
+
+        .modal-art-area .ma-new {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #e74c3c;
+            color: #fff;
+            font-size: 12px;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-weight: 700
+        }
+
+        .modal-info {
+            padding: 16px;
+            background: #2c1810
+        }
+
+        .modal-info .mi-name {
+            font-size: 28px;
+            font-weight: 900;
+            margin-bottom: 4px
+        }
+
+        .modal-info .mi-name.tian {
+            color: #ffd700
+        }
+
+        .modal-info .mi-name.hou {
+            color: #6ab0ff
+        }
+
+        .modal-info .mi-name.qing {
+            color: #81c784
+        }
+
+        .modal-info .mi-count {
+            font-size: 13px;
+            color: var(--text-light)
+        }
+
+        .modal-close {
+            margin-top: 12px;
+            padding: 7px 28px;
+            border: 1px solid rgba(201, 168, 76, .4);
+            background: transparent;
+            color: var(--accent-gold);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 13px;
+            cursor: pointer;
+            transition: .2s
+        }
+
+        .modal-close:hover {
+            background: rgba(201, 168, 76, .15)
+        }
+
+        /* CUSTOM POOL */
+        .pool-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 250;
+            background: rgba(44, 24, 16, .92);
+            overflow-y: auto;
+            padding: 16px
+        }
+
+        .pool-overlay.show {
+            display: block
+        }
+
+        .pool-header {
+            max-width: 480px;
+            margin: 0 auto 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .pool-header h2 {
+            font-size: 18px;
+            color: var(--accent-gold);
+            letter-spacing: 2px
+        }
+
+        .pool-actions {
+            display: flex;
+            gap: 8px
+        }
+
+        .pool-action-btn {
+            padding: 6px 14px;
+            border: 1px solid rgba(201, 168, 76, .4);
+            background: transparent;
+            color: var(--accent-gold);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 12px;
+            cursor: pointer;
+            transition: .2s
+        }
+
+        .pool-action-btn:hover {
+            background: rgba(201, 168, 76, .15)
+        }
+
+        .pool-action-btn.primary {
+            background: var(--accent-gold);
+            color: #2c1810;
+            border-color: var(--accent-gold)
+        }
+
+        .pool-info {
+            max-width: 480px;
+            margin: 0 auto 12px;
+            font-size: 13px;
+            color: var(--text-light);
+            text-align: center
+        }
+
+        .pool-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+            gap: 6px;
+            max-width: 480px;
+            margin: 0 auto
+        }
+
+        .pool-item {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: .2s;
+            position: relative;
+            overflow: hidden
+        }
+
+        .pool-item:hover {
+            transform: translateY(-2px)
+        }
+
+        .pool-item.selected {
+            box-shadow: 0 0 12px rgba(201, 168, 76, .5)
+        }
+
+        .pool-item.tian {
+            background: rgba(255, 215, 0, .1)
+        }
+
+        .pool-item.tian.selected {
+            background: rgba(255, 215, 0, .25)
+        }
+
+        .pool-item.hou {
+            background: rgba(74, 144, 217, .08)
+        }
+
+        .pool-item.hou.selected {
+            background: rgba(74, 144, 217, .2)
+        }
+
+        .pool-item.qing {
+            background: rgba(76, 175, 80, .08)
+        }
+
+        .pool-item.qing.selected {
+            background: rgba(76, 175, 80, .2)
+        }
+
+        .pool-item .pi-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            object-fit: cover;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%)
+        }
+
+        .pool-item .pi-frame {
+            width: 72px;
+            height: 72px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none
+        }
+
+        .pool-item .pi-name {
+            position: absolute;
+            bottom: 1px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-light);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding: 0 2px
+        }
+
+        .pool-item .check-mark {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent-gold);
+            color: #2c1810;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 900;
+            z-index: 2
+        }
+
+        .pool-item.selected .check-mark {
+            display: flex
+        }
+
+        .pool-search {
+            max-width: 480px;
+            margin: 0 auto 12px
+        }
+
+        .pool-search input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 13px;
+            background: rgba(255, 255, 255, .1);
+            color: var(--text-light);
+            outline: none
+        }
+
+        .pool-search input::placeholder {
+            color: rgba(212, 196, 168, .5)
+        }
+
+        .pool-search input:focus {
+            border-color: var(--accent-gold)
+        }
+
+        /* STATS */
+        .stats-panel {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid var(--border-light)
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 16px
+        }
+
+        .stat-card {
+            padding: 14px;
+            background: var(--bg-paper);
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--border-light)
+        }
+
+        .stat-card .sv {
+            font-size: 26px;
+            font-weight: 900;
+            color: var(--accent-red)
+        }
+
+        .stat-card .sl {
+            font-size: 11px;
+            color: #8b7355;
+            margin-top: 2px
+        }
+
+        .prob-compare {
+            margin: 16px 0
+        }
+
+        .prob-compare h3 {
+            font-size: 15px;
+            margin-bottom: 10px;
+            color: var(--accent-red)
+        }
+
+        .prob-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 6px
+        }
+
+        .prob-row .pl {
+            width: 40px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: right
+        }
+
+        .prob-row .pb {
+            flex: 1;
+            height: 18px;
+            background: #e8dcc8;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative
+        }
+
+        .prob-row .pf {
+            height: 100%;
+            border-radius: 4px;
+            transition: width .5s;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            min-width: 36px
+        }
+
+        .prob-row .pf.gold {
+            background: linear-gradient(90deg, #ffd700, #ffec80);
+            color: #8b6914
+        }
+
+        .prob-row .pf.blue {
+            background: linear-gradient(90deg, #4a90d9, #6ab0ff);
+            color: #fff
+        }
+
+        .prob-row .pf.green {
+            background: linear-gradient(90deg, #4caf50, #81c784);
+            color: #fff
+        }
+
+        .prob-row .pt {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            border-right: 2px dashed rgba(139, 37, 0, .5);
+            z-index: 2
+        }
+
+        .prob-row .pp {
+            width: 48px;
+            font-size: 11px;
+            text-align: right;
+            color: #8b7355
+        }
+
+        .rank-list {
+            margin-top: 14px
+        }
+
+        .rank-list h3 {
+            font-size: 15px;
+            margin-bottom: 10px;
+            color: var(--accent-red)
+        }
+
+        .rank-item {
+            display: flex;
+            align-items: center;
+            padding: 7px 10px;
+            border-bottom: 1px solid var(--border-light);
+            gap: 8px
+        }
+
+        .rank-item:last-child {
+            border-bottom: none
+        }
+
+        .rank-num {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            flex-shrink: 0
+        }
+
+        .rank-item:nth-child(1) .rank-num {
+            background: #ffd700;
+            color: #8b6914
+        }
+
+        .rank-item:nth-child(2) .rank-num {
+            background: #c0c0c0;
+            color: #555
+        }
+
+        .rank-item:nth-child(3) .rank-num {
+            background: #cd7f32;
+            color: #fff
+        }
+
+        .rank-name {
+            flex: 1;
+            font-size: 13px
+        }
+
+        .rank-count {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--accent-red)
+        }
+
+        .reset-section {
+            margin-top: 20px;
+            text-align: center
+        }
+
+        .reset-btn {
+            padding: 8px 20px;
+            border: 1px solid #ccc;
+            background: #fff;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 13px;
+            cursor: pointer;
+            color: #999;
+            transition: .2s
+        }
+
+        .reset-btn:hover {
+            border-color: #e74c3c;
+            color: #e74c3c
+        }
+
+        .footer {
+            text-align: center;
+            padding: 16px;
+            font-size: 11px;
+            color: #b0a090;
+            border-top: 1px solid var(--border-light);
+            margin-top: 30px
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-light);
+            border-radius: 2px
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <div class="header">
+            <h1>Jiangnan Gacha Simulator</h1>
+        </div>
+        <div class="nav-tabs">
+            <div class="nav-tab active" data-tab="gacha">绘画</div>
+            <div class="nav-tab" data-tab="collection">图鉴</div>
+            <div class="nav-tab" data-tab="stats">统计</div>
+        </div>
+        <div class="content">
+            <div class="tab-content active" id="tab-gacha">
+                <div class="draw-section">
+                    <div class="draw-hint">请绘图</div>
+                    <div class="canvas-wrapper">
+                        <canvas id="drawCanvas" width="456" height="400"></canvas>
+                        <div class="canvas-overlay" id="canvasOverlay"><span>落笔绘画</span></div>
+                    </div>
+                    <div class="draw-controls">
+                        <div class="mode-toggle">
+                            <button class="mode-btn active" data-mode="1" onclick="setMode(1)">画一张</button>
+                            <button class="mode-btn" data-mode="10" onclick="setMode(10)">画十张</button>
+                        </div>
+                        <button class="clear-btn" onclick="clearCanvas()">清空</button>
+                        <button class="pool-toggle" id="poolToggle" onclick="openPool()">角色池</button>
+                    </div>
+                    <div class="quick-stats" id="quickStats"></div>
+                </div>
+            </div>
+            <div class="tab-content" id="tab-collection">
+                <div class="collection-header">
+                    <h2>角色图鉴</h2>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-filter="all">全部</button>
+                        <button class="filter-btn" data-filter="天">天级</button>
+                        <button class="filter-btn" data-filter="侯">候级</button>
+                        <button class="filter-btn" data-filter="卿">卿级</button>
+                    </div>
+                </div>
+                <div class="collection-progress" id="collectionProgress"></div>
+                <div class="collection-grid" id="collectionGrid"></div>
+            </div>
+            <div class="tab-content" id="tab-stats">
+                <div class="stats-panel">
+                    <div class="stats-grid" id="statsGrid"></div>
+                    <div class="prob-compare" id="probCompare"></div>
+                    <div class="rank-list" id="rankList"></div>
+                    <div class="reset-section"><button class="reset-btn" onclick="resetAll()">重置所有数据</button></div>
+                </div>
+            </div>
+        </div>
+        <div class="footer">角色数据来源于 bilibili wiki · 仅供娱乐</div>
+    </div>
+
+    <!-- REVEAL -->
+    <div class="reveal-overlay" id="revealOverlay">
+        <div class="reveal-counter" id="revealCounter"></div>
+        <div class="reveal-art-area" id="revealArtArea" onclick="nextReveal()">
+            <img class="bg-img" id="revealBg" src="">
+            <img class="art-img" id="revealArt" src="">
+            <div class="sparkles" id="sparkles"></div>
+            <div class="new-tag" id="revealNew" style="display:none">NEW</div>
+        </div>
+        <div class="reveal-name" id="revealName"></div>
+        <div class="reveal-hint" id="revealHint">点击立绘查看下一个</div>
+        <div class="reveal-actions"><button class="reveal-skip-btn" onclick="skipAll()">跳过，直接展示</button></div>
+    </div>
+
+    <!-- ALL RESULTS -->
+    <div class="all-results-overlay" id="allResultsOverlay">
+        <div class="all-results-title" id="allResultsTitle"></div>
+        <div class="all-results-grid" id="allResultsGrid"></div>
+        <button class="all-results-close" onclick="closeAllResults()">确认</button>
+    </div>
+
+    <!-- POOL -->
+    <div class="pool-overlay" id="poolOverlay">
+        <div class="pool-header">
+            <h2>自定义角色池</h2>
+            <div class="pool-actions">
+                <button class="pool-action-btn" onclick="clearPool()">清空</button>
+                <button class="pool-action-btn" onclick="selectAll()">全选</button>
+                <button class="pool-action-btn primary" onclick="closePool()">确认</button>
+            </div>
+        </div>
+        <div class="pool-search"><input type="text" id="poolSearch" placeholder="搜索角色名..." oninput="filterPool()"></div>
+        <div class="pool-info" id="poolInfo"></div>
+        <div class="pool-grid" id="poolGrid"></div>
+    </div>
+
+    <!-- DETAIL MODAL -->
+    <div class="modal-overlay" id="modal" onclick="closeModal(event)">
+        <div class="modal-content" id="modalContent"></div>
+    </div>
+
+    <script>
+        const ALL_CHARS = [{ "name": "榴见月", "rarity": "天", "art": "art/000_榴见月.png", "avatar": "images/000_榴见月.png" }, { "name": "王羲之", "rarity": "天", "art": "art/001_王羲之.png", "avatar": "images/001_王羲之.png" }, { "name": "麻姑", "rarity": "天", "art": "art/002_麻姑.png", "avatar": "images/002_麻姑.png" }, { "name": "钟雪渔", "rarity": "天", "art": "art/003_钟雪渔.png", "avatar": "images/003_钟雪渔.png" }, { "name": "元稹", "rarity": "天", "art": "art/004_元稹.png", "avatar": "images/004_元稹.png" }, { "name": "张居正", "rarity": "天", "art": "art/005_张居正.png", "avatar": "images/005_张居正.png" }, { "name": "管道昇", "rarity": "天", "art": "art/006_管道昇.png", "avatar": "images/006_管道昇.png" }, { "name": "马致远", "rarity": "天", "art": "art/007_马致远.png", "avatar": "images/007_马致远.png" }, { "name": "貂蝉", "rarity": "天", "art": "art/008_貂蝉.png", "avatar": "images/008_貂蝉.png" }, { "name": "贺兰珠", "rarity": "天", "art": "art/009_贺兰珠.png", "avatar": "images/009_贺兰珠.png" }, { "name": "孟婆", "rarity": "天", "art": "art/010_孟婆.png", "avatar": "images/010_孟婆.png" }, { "name": "李商隐", "rarity": "天", "art": "art/011_李商隐.png", "avatar": "images/011_李商隐.png" }, { "name": "李煜", "rarity": "天", "art": "art/012_李煜.png", "avatar": "images/012_李煜.png" }, { "name": "龙汐", "rarity": "天", "art": "art/013_龙汐.png", "avatar": "images/013_龙汐.png" }, { "name": "龙璃", "rarity": "天", "art": "art/014_龙璃.png", "avatar": "images/014_龙璃.png" }, { "name": "范钦", "rarity": "天", "art": "art/015_范钦.png", "avatar": "images/015_范钦.png" }, { "name": "刘解忧", "rarity": "天", "art": "art/016_刘解忧.png", "avatar": "images/016_刘解忧.png" }, { "name": "陶渊明", "rarity": "天", "art": "art/017_陶渊明.png", "avatar": "images/017_陶渊明.png" }, { "name": "宋应星", "rarity": "天", "art": "art/018_宋应星.png", "avatar": "images/018_宋应星.png" }, { "name": "干宝", "rarity": "天", "art": "art/019_干宝.png", "avatar": "images/019_干宝.png" }, { "name": "刘采春", "rarity": "天", "art": "art/020_刘采春.png", "avatar": "images/020_刘采春.png" }, { "name": "汤姑", "rarity": "天", "art": "art/021_汤姑.png", "avatar": "images/021_汤姑.png" }, { "name": "马秀英", "rarity": "天", "art": "art/022_马秀英.png", "avatar": "images/022_马秀英.png" }, { "name": "柳永", "rarity": "天", "art": "art/023_柳永.png", "avatar": "images/023_柳永.png" }, { "name": "薛涛", "rarity": "天", "art": "art/024_薛涛.png", "avatar": "images/024_薛涛.png" }, { "name": "干将", "rarity": "天", "art": "art/025_干将.png", "avatar": "images/025_干将.png" }, { "name": "范泊宁", "rarity": "天", "art": "art/026_范泊宁.png", "avatar": "images/026_范泊宁.png" }, { "name": "道济", "rarity": "天", "art": "art/027_道济.png", "avatar": "images/027_道济.png" }, { "name": "徐妙云", "rarity": "天", "art": "art/028_徐妙云.png", "avatar": "images/028_徐妙云.png" }, { "name": "计成", "rarity": "天", "art": "art/029_计成.png", "avatar": "images/029_计成.png" }, { "name": "段成式", "rarity": "天", "art": "art/030_段成式.png", "avatar": "images/030_段成式.png" }, { "name": "肖含珠", "rarity": "天", "art": "art/031_肖含珠.png", "avatar": "images/031_肖含珠.png" }, { "name": "红拂", "rarity": "天", "art": "art/032_红拂.png", "avatar": "images/032_红拂.png" }, { "name": "公输般", "rarity": "天", "art": "art/033_公输般.png", "avatar": "images/033_公输般.png" }, { "name": "卫寻彩", "rarity": "天", "art": "art/034_卫寻彩.png", "avatar": "images/034_卫寻彩.png" }, { "name": "上官婉儿", "rarity": "天", "art": "art/035_上官婉儿.png", "avatar": "images/035_上官婉儿.png" }, { "name": "成凤羽", "rarity": "天", "art": "art/036_成凤羽.png", "avatar": "images/036_成凤羽.png" }, { "name": "王祯", "rarity": "天", "art": "art/037_王祯.png", "avatar": "images/037_王祯.png" }, { "name": "公孙策", "rarity": "天", "art": "art/038_公孙策.png", "avatar": "images/038_公孙策.png" }, { "name": "东方祚", "rarity": "天", "art": "art/039_东方祚.png", "avatar": "images/039_东方祚.png" }, { "name": "吕穹生", "rarity": "天", "art": "art/040_吕穹生.png", "avatar": "images/040_吕穹生.png" }, { "name": "桑岷", "rarity": "天", "art": "art/041_桑岷.png", "avatar": "images/041_桑岷.png" }, { "name": "百里安", "rarity": "天", "art": "art/042_百里安.png", "avatar": "images/042_百里安.png" }, { "name": "鹿经纬", "rarity": "天", "art": "art/043_鹿经纬.png", "avatar": "images/043_鹿经纬.png" }, { "name": "马远道", "rarity": "天", "art": "art/044_马远道.png", "avatar": "images/044_马远道.png" }, { "name": "张山归", "rarity": "天", "art": "art/045_张山归.png", "avatar": "images/045_张山归.png" }, { "name": "余妙年", "rarity": "天", "art": "art/046_余妙年.png", "avatar": "images/046_余妙年.png" }, { "name": "乔溪午", "rarity": "天", "art": "art/047_乔溪午.png", "avatar": "images/047_乔溪午.png" }, { "name": "乔沐", "rarity": "天", "art": "art/048_乔沐.png", "avatar": "images/048_乔沐.png" }, { "name": "涂南山", "rarity": "天", "art": "art/049_涂南山.png", "avatar": "images/049_涂南山.png" }, { "name": "红鸾", "rarity": "天", "art": "art/050_红鸾.png", "avatar": "images/050_红鸾.png" }, { "name": "冯令吉", "rarity": "天", "art": "art/051_冯令吉.png", "avatar": "images/051_冯令吉.png" }, { "name": "令风来", "rarity": "天", "art": "art/052_令风来.png", "avatar": "images/052_令风来.png" }, { "name": "万千山", "rarity": "天", "art": "art/053_万千山.png", "avatar": "images/053_万千山.png" }, { "name": "杨婳", "rarity": "天", "art": "art/054_杨婳.png", "avatar": "images/054_杨婳.png" }, { "name": "李星罗", "rarity": "天", "art": "art/055_李星罗.png", "avatar": "images/055_李星罗.png" }, { "name": "顾小九", "rarity": "天", "art": "art/056_顾小九.png", "avatar": "images/056_顾小九.png" }, { "name": "王扶危", "rarity": "天", "art": "art/057_王扶危.png", "avatar": "images/057_王扶危.png" }, { "name": "柳笑翁", "rarity": "天", "art": "art/058_柳笑翁.png", "avatar": "images/058_柳笑翁.png" }, { "name": "叶闻灯", "rarity": "天", "art": "art/059_叶闻灯.png", "avatar": "images/059_叶闻灯.png" }, { "name": "凤扬", "rarity": "天", "art": "art/060_凤扬.png", "avatar": "images/060_凤扬.png" }, { "name": "秦挽铮", "rarity": "天", "art": "art/061_秦挽铮.png", "avatar": "images/061_秦挽铮.png" }, { "name": "秦奚", "rarity": "天", "art": "art/062_秦奚.png", "avatar": "images/062_秦奚.png" }, { "name": "公子礼", "rarity": "天", "art": "art/063_公子礼.png", "avatar": "images/063_公子礼.png" }, { "name": "兰心娴", "rarity": "天", "art": "art/064_兰心娴.png", "avatar": "images/064_兰心娴.png" }, { "name": "金魏", "rarity": "天", "art": "art/065_金魏.png", "avatar": "images/065_金魏.png" }, { "name": "孟余", "rarity": "天", "art": "art/066_孟余.png", "avatar": "images/066_孟余.png" }, { "name": "姜喜", "rarity": "天", "art": "art/067_姜喜.png", "avatar": "images/067_姜喜.png" }, { "name": "飞花", "rarity": "天", "art": "art/068_飞花.png", "avatar": "images/068_飞花.png" }, { "name": "弥月", "rarity": "天", "art": "art/069_弥月.png", "avatar": "images/069_弥月.png" }, { "name": "泉先", "rarity": "天", "art": "art/070_泉先.png", "avatar": "images/070_泉先.png" }, { "name": "江行", "rarity": "天", "art": "art/071_江行.png", "avatar": "images/071_江行.png" }, { "name": "公孙跃", "rarity": "天", "art": "art/072_公孙跃.png", "avatar": "images/072_公孙跃.png" }, { "name": "卢璨", "rarity": "天", "art": "art/073_卢璨.png", "avatar": "images/073_卢璨.png" }, { "name": "卢璀", "rarity": "天", "art": "art/074_卢璀.png", "avatar": "images/074_卢璀.png" }, { "name": "向斜阳", "rarity": "天", "art": "art/075_向斜阳.png", "avatar": "images/075_向斜阳.png" }, { "name": "胡月眉", "rarity": "天", "art": "art/076_胡月眉.png", "avatar": "images/076_胡月眉.png" }, { "name": "孟好学", "rarity": "天", "art": "art/077_孟好学.png", "avatar": "images/077_孟好学.png" }, { "name": "麦小满", "rarity": "天", "art": "art/078_麦小满.png", "avatar": "images/078_麦小满.png" }, { "name": "百里沉香", "rarity": "天", "art": "art/079_百里沉香.png", "avatar": "images/079_百里沉香.png" }, { "name": "宫商羽", "rarity": "天", "art": "art/080_宫商羽.png", "avatar": "images/080_宫商羽.png" }, { "name": "成梁", "rarity": "天", "art": "art/081_成梁.png", "avatar": "images/081_成梁.png" }, { "name": "端木偃", "rarity": "天", "art": "art/082_端木偃.png", "avatar": "images/082_端木偃.png" }, { "name": "鹿溪隐", "rarity": "天", "art": "art/083_鹿溪隐.png", "avatar": "images/083_鹿溪隐.png" }, { "name": "云踏雪", "rarity": "天", "art": "art/084_云踏雪.png", "avatar": "images/084_云踏雪.png" }, { "name": "蛋生", "rarity": "天", "art": "art/085_蛋生.png", "avatar": "images/085_蛋生.png" }, { "name": "天机子", "rarity": "天", "art": "art/086_天机子.png", "avatar": "images/086_天机子.png" }, { "name": "小玉", "rarity": "天", "art": "art/087_小玉.png", "avatar": "images/087_小玉.png" }, { "name": "杨宗保", "rarity": "天", "art": "art/088_杨宗保.png", "avatar": "images/088_杨宗保.png" }, { "name": "哪吒", "rarity": "天", "art": "art/089_哪吒.png", "avatar": "images/089_哪吒.png" }, { "name": "程大位", "rarity": "天", "art": "art/090_程大位.png", "avatar": "images/090_程大位.png" }, { "name": "屈原", "rarity": "天", "art": "art/091_屈原.png", "avatar": "images/091_屈原.png" }, { "name": "苏轼", "rarity": "天", "art": "art/092_苏轼.png", "avatar": "images/092_苏轼.png" }, { "name": "罗贯中", "rarity": "天", "art": "art/093_罗贯中.png", "avatar": "images/093_罗贯中.png" }, { "name": "施耐庵", "rarity": "天", "art": "art/094_施耐庵.png", "avatar": "images/094_施耐庵.png" }, { "name": "吴承恩", "rarity": "天", "art": "art/095_吴承恩.png", "avatar": "images/095_吴承恩.png" }, { "name": "鱼玄机", "rarity": "天", "art": "art/096_鱼玄机.png", "avatar": "images/096_鱼玄机.png" }, { "name": "嵇康", "rarity": "天", "art": "art/097_嵇康.png", "avatar": "images/097_嵇康.png" }, { "name": "戚继光", "rarity": "天", "art": "art/098_戚继光.png", "avatar": "images/098_戚继光.png" }, { "name": "沈度", "rarity": "天", "art": "art/099_沈度.png", "avatar": "images/099_沈度.png" }, { "name": "朱棣", "rarity": "天", "art": "art/100_朱棣.png", "avatar": "images/100_朱棣.png" }, { "name": "展昭", "rarity": "天", "art": "art/101_展昭.png", "avatar": "images/101_展昭.png" }, { "name": "文俶", "rarity": "天", "art": "art/102_文俶.png", "avatar": "images/102_文俶.png" }, { "name": "仇珠", "rarity": "天", "art": "art/103_仇珠.png", "avatar": "images/103_仇珠.png" }, { "name": "徐祯卿", "rarity": "天", "art": "art/104_徐祯卿.png", "avatar": "images/104_徐祯卿.png" }, { "name": "奢香", "rarity": "天", "art": "art/105_奢香.png", "avatar": "images/105_奢香.png" }, { "name": "白居易", "rarity": "天", "art": "art/106_白居易.png", "avatar": "images/106_白居易.png" }, { "name": "罗素月", "rarity": "天", "art": "art/107_罗素月.png", "avatar": "images/107_罗素月.png" }, { "name": "祝英台", "rarity": "天", "art": "art/108_祝英台.png", "avatar": "images/108_祝英台.png" }, { "name": "马蓬瀛", "rarity": "天", "art": "art/109_马蓬瀛.png", "avatar": "images/109_马蓬瀛.png" }, { "name": "谈允贤", "rarity": "天", "art": "art/110_谈允贤.png", "avatar": "images/110_谈允贤.png" }, { "name": "张择端", "rarity": "天", "art": "art/111_张择端.png", "avatar": "images/111_张择端.png" }, { "name": "仇英", "rarity": "天", "art": "art/112_仇英.png", "avatar": "images/112_仇英.png" }, { "name": "沈括", "rarity": "天", "art": "art/113_沈括.png", "avatar": "images/113_沈括.png" }, { "name": "武则天", "rarity": "天", "art": "art/114_武则天.png", "avatar": "images/114_武则天.png" }, { "name": "黄道婆", "rarity": "天", "art": "art/115_黄道婆.png", "avatar": "images/115_黄道婆.png" }, { "name": "包拯", "rarity": "天", "art": "art/116_包拯.png", "avatar": "images/116_包拯.png" }, { "name": "王昭君", "rarity": "天", "art": "art/117_王昭君.png", "avatar": "images/117_王昭君.png" }, { "name": "玄奘", "rarity": "天", "art": "art/118_玄奘.png", "avatar": "images/118_玄奘.png" }, { "name": "沈周", "rarity": "天", "art": "art/119_沈周.png", "avatar": "images/119_沈周.png" }, { "name": "常遇春", "rarity": "天", "art": "art/120_常遇春.png", "avatar": "images/120_常遇春.png" }, { "name": "唐伯虎", "rarity": "天", "art": "art/121_唐伯虎.png", "avatar": "images/121_唐伯虎.png" }, { "name": "李清照", "rarity": "天", "art": "art/122_李清照.png", "avatar": "images/122_李清照.png" }, { "name": "李白", "rarity": "天", "art": "art/123_李白.png", "avatar": "images/123_李白.png" }, { "name": "刘伯温", "rarity": "天", "art": "art/124_刘伯温.png", "avatar": "images/124_刘伯温.png" }, { "name": "白素贞", "rarity": "天", "art": "art/125_白素贞.png", "avatar": "images/125_白素贞.png" }, { "name": "李时珍", "rarity": "天", "art": "art/126_李时珍.png", "avatar": "images/126_李时珍.png" }, { "name": "卫铄", "rarity": "侯", "art": "art/127_卫铄.png", "avatar": "images/127_卫铄.png" }, { "name": "钟驰", "rarity": "侯", "art": "art/128_钟驰.png", "avatar": "images/128_钟驰.png" }, { "name": "赵孟頫", "rarity": "侯", "art": "art/129_赵孟頫.png", "avatar": "images/129_赵孟頫.png" }, { "name": "傅肱", "rarity": "侯", "art": "art/130_傅肱.png", "avatar": "images/130_傅肱.png" }, { "name": "迟保保", "rarity": "侯", "art": "art/131_迟保保.png", "avatar": "images/131_迟保保.png" }, { "name": "袁澄", "rarity": "侯", "art": "art/132_袁澄.png", "avatar": "images/132_袁澄.png" }, { "name": "冯嫽", "rarity": "侯", "art": "art/133_冯嫽.png", "avatar": "images/133_冯嫽.png" }, { "name": "桃朵儿", "rarity": "侯", "art": "art/134_桃朵儿.png", "avatar": "images/134_桃朵儿.png" }, { "name": "苏辙", "rarity": "侯", "art": "art/135_苏辙.png", "avatar": "images/135_苏辙.png" }, { "name": "汤大年", "rarity": "侯", "art": "art/136_汤大年.png", "avatar": "images/136_汤大年.png" }, { "name": "李冶", "rarity": "侯", "art": "art/137_李冶.png", "avatar": "images/137_李冶.png" }, { "name": "燕阿紫", "rarity": "侯", "art": "art/138_燕阿紫.png", "avatar": "images/138_燕阿紫.png" }, { "name": "莫邪", "rarity": "侯", "art": "art/139_莫邪.png", "avatar": "images/139_莫邪.png" }, { "name": "张舟师", "rarity": "侯", "art": "art/140_张舟师.png", "avatar": "images/140_张舟师.png" }, { "name": "周游越", "rarity": "侯", "art": "art/141_周游越.png", "avatar": "images/141_周游越.png" }, { "name": "李青溪", "rarity": "侯", "art": "art/142_李青溪.png", "avatar": "images/142_李青溪.png" }, { "name": "慕姣姣", "rarity": "侯", "art": "art/143_慕姣姣.png", "avatar": "images/143_慕姣姣.png" }, { "name": "金鲤", "rarity": "侯", "art": "art/144_金鲤.png", "avatar": "images/144_金鲤.png" }, { "name": "花宜芳", "rarity": "侯", "art": "art/145_花宜芳.png", "avatar": "images/145_花宜芳.png" }, { "name": "文简", "rarity": "侯", "art": "art/146_文简.png", "avatar": "images/146_文简.png" }, { "name": "姬荔", "rarity": "侯", "art": "art/147_姬荔.png", "avatar": "images/147_姬荔.png" }, { "name": "林卫木", "rarity": "侯", "art": "art/148_林卫木.png", "avatar": "images/148_林卫木.png" }, { "name": "宋沉吟", "rarity": "侯", "art": "art/149_宋沉吟.png", "avatar": "images/149_宋沉吟.png" }, { "name": "武鸣月", "rarity": "侯", "art": "art/150_武鸣月.png", "avatar": "images/150_武鸣月.png" }, { "name": "千暮雪", "rarity": "侯", "art": "art/151_千暮雪.png", "avatar": "images/151_千暮雪.png" }, { "name": "顾半城", "rarity": "侯", "art": "art/152_顾半城.png", "avatar": "images/152_顾半城.png" }, { "name": "盛羽林", "rarity": "侯", "art": "art/153_盛羽林.png", "avatar": "images/153_盛羽林.png" }, { "name": "柳春莺", "rarity": "侯", "art": "art/154_柳春莺.png", "avatar": "images/154_柳春莺.png" }, { "name": "夏剪春", "rarity": "侯", "art": "art/155_夏剪春.png", "avatar": "images/155_夏剪春.png" }, { "name": "罗一响", "rarity": "侯", "art": "art/156_罗一响.png", "avatar": "images/156_罗一响.png" }, { "name": "杜言游", "rarity": "侯", "art": "art/157_杜言游.png", "avatar": "images/157_杜言游.png" }, { "name": "荣嘉", "rarity": "侯", "art": "art/158_荣嘉.png", "avatar": "images/158_荣嘉.png" }, { "name": "李旋箫", "rarity": "侯", "art": "art/159_李旋箫.png", "avatar": "images/159_李旋箫.png" }, { "name": "邱仲", "rarity": "侯", "art": "art/160_邱仲.png", "avatar": "images/160_邱仲.png" }, { "name": "姜寿", "rarity": "侯", "art": "art/161_姜寿.png", "avatar": "images/161_姜寿.png" }, { "name": "窦有禅", "rarity": "侯", "art": "art/162_窦有禅.png", "avatar": "images/162_窦有禅.png" }, { "name": "刘玉谨", "rarity": "侯", "art": "art/163_刘玉谨.png", "avatar": "images/163_刘玉谨.png" }, { "name": "裴闻镜", "rarity": "侯", "art": "art/164_裴闻镜.png", "avatar": "images/164_裴闻镜.png" }, { "name": "花晚照", "rarity": "侯", "art": "art/165_花晚照.png", "avatar": "images/165_花晚照.png" }, { "name": "曹亦", "rarity": "侯", "art": "art/166_曹亦.png", "avatar": "images/166_曹亦.png" }, { "name": "杜言行", "rarity": "侯", "art": "art/167_杜言行.png", "avatar": "images/167_杜言行.png" }, { "name": "高舞", "rarity": "侯", "art": "art/168_高舞.png", "avatar": "images/168_高舞.png" }, { "name": "元采蓝", "rarity": "侯", "art": "art/169_元采蓝.png", "avatar": "images/169_元采蓝.png" }, { "name": "时闯", "rarity": "侯", "art": "art/170_时闯.png", "avatar": "images/170_时闯.png" }, { "name": "乐闻", "rarity": "侯", "art": "art/171_乐闻.png", "avatar": "images/171_乐闻.png" }, { "name": "云晴雪", "rarity": "侯", "art": "art/172_云晴雪.png", "avatar": "images/172_云晴雪.png" }, { "name": "袁公", "rarity": "侯", "art": "art/173_袁公.png", "avatar": "images/173_袁公.png" }, { "name": "满庭芳", "rarity": "侯", "art": "art/174_满庭芳.png", "avatar": "images/174_满庭芳.png" }, { "name": "龙女", "rarity": "侯", "art": "art/175_龙女.png", "avatar": "images/175_龙女.png" }, { "name": "郭天问", "rarity": "侯", "art": "art/176_郭天问.png", "avatar": "images/176_郭天问.png" }, { "name": "佘太君", "rarity": "侯", "art": "art/177_佘太君.png", "avatar": "images/177_佘太君.png" }, { "name": "红孩儿", "rarity": "侯", "art": "art/178_红孩儿.png", "avatar": "images/178_红孩儿.png" }, { "name": "谢道韫", "rarity": "侯", "art": "art/179_谢道韫.png", "avatar": "images/179_谢道韫.png" }, { "name": "蓝玉", "rarity": "侯", "art": "art/180_蓝玉.png", "avatar": "images/180_蓝玉.png" }, { "name": "兰陵笑笑生", "rarity": "侯", "art": "art/181_兰陵笑笑生.png", "avatar": "images/181_兰陵笑笑生.png" }, { "name": "金圣叹", "rarity": "侯", "art": "art/182_金圣叹.png", "avatar": "images/182_金圣叹.png" }, { "name": "袁可立", "rarity": "侯", "art": "art/183_袁可立.png", "avatar": "images/183_袁可立.png" }, { "name": "木增", "rarity": "侯", "art": "art/184_木增.png", "avatar": "images/184_木增.png" }, { "name": "小青", "rarity": "侯", "art": "art/185_小青.png", "avatar": "images/185_小青.png" }, { "name": "温庭筠", "rarity": "侯", "art": "art/186_温庭筠.png", "avatar": "images/186_温庭筠.png" }, { "name": "杜牧", "rarity": "侯", "art": "art/187_杜牧.png", "avatar": "images/187_杜牧.png" }, { "name": "阮籍", "rarity": "侯", "art": "art/188_阮籍.png", "avatar": "images/188_阮籍.png" }, { "name": "王如一", "rarity": "侯", "art": "art/189_王如一.png", "avatar": "images/189_王如一.png" }, { "name": "陆深", "rarity": "侯", "art": "art/190_陆深.png", "avatar": "images/190_陆深.png" }, { "name": "魏徵", "rarity": "侯", "art": "art/191_魏徵.png", "avatar": "images/191_魏徵.png" }, { "name": "左思", "rarity": "侯", "art": "art/192_左思.png", "avatar": "images/192_左思.png" }, { "name": "姚广孝", "rarity": "侯", "art": "art/193_姚广孝.png", "avatar": "images/193_姚广孝.png" }, { "name": "白玉堂", "rarity": "侯", "art": "art/194_白玉堂.png", "avatar": "images/194_白玉堂.png" }, { "name": "苏武", "rarity": "侯", "art": "art/195_苏武.png", "avatar": "images/195_苏武.png" }, { "name": "祝枝山", "rarity": "侯", "art": "art/196_祝枝山.png", "avatar": "images/196_祝枝山.png" }, { "name": "刘淑贞", "rarity": "侯", "art": "art/197_刘淑贞.png", "avatar": "images/197_刘淑贞.png" }, { "name": "赵明诚", "rarity": "侯", "art": "art/198_赵明诚.png", "avatar": "images/198_赵明诚.png" }, { "name": "林奴儿", "rarity": "侯", "art": "art/199_林奴儿.png", "avatar": "images/199_林奴儿.png" }, { "name": "钟馗", "rarity": "侯", "art": "art/200_钟馗.png", "avatar": "images/200_钟馗.png" }, { "name": "梁山伯", "rarity": "侯", "art": "art/201_梁山伯.png", "avatar": "images/201_梁山伯.png" }, { "name": "潘安", "rarity": "侯", "art": "art/202_潘安.png", "avatar": "images/202_潘安.png" }, { "name": "秦良玉", "rarity": "侯", "art": "art/203_秦良玉.png", "avatar": "images/203_秦良玉.png" }, { "name": "狄青", "rarity": "侯", "art": "art/204_狄青.png", "avatar": "images/204_狄青.png" }, { "name": "穆桂英", "rarity": "侯", "art": "art/205_穆桂英.png", "avatar": "images/205_穆桂英.png" }, { "name": "朱元璋", "rarity": "侯", "art": "art/206_朱元璋.png", "avatar": "images/206_朱元璋.png" }, { "name": "许宣", "rarity": "侯", "art": "art/207_许宣.png", "avatar": "images/207_许宣.png" }, { "name": "利玛窦", "rarity": "侯", "art": "art/208_利玛窦.png", "avatar": "images/208_利玛窦.png" }, { "name": "徐光启", "rarity": "侯", "art": "art/209_徐光启.png", "avatar": "images/209_徐光启.png" }, { "name": "郑和", "rarity": "侯", "art": "art/210_郑和.png", "avatar": "images/210_郑和.png" }, { "name": "徐霞客", "rarity": "侯", "art": "art/211_徐霞客.png", "avatar": "images/211_徐霞客.png" }, { "name": "吴黎", "rarity": "侯", "art": "art/212_吴黎.png", "avatar": "images/212_吴黎.png" }, { "name": "董其昌", "rarity": "侯", "art": "art/213_董其昌.png", "avatar": "images/213_董其昌.png" }, { "name": "文徵明", "rarity": "侯", "art": "art/214_文徵明.png", "avatar": "images/214_文徵明.png" }, { "name": "阿朵", "rarity": "侯", "art": "art/215_阿朵.png", "avatar": "images/215_阿朵.png" }, { "name": "丘阿芥", "rarity": "卿", "art": "art/216_丘阿芥.png", "avatar": "images/216_丘阿芥.png" }, { "name": "宋应升", "rarity": "卿", "art": "art/217_宋应升.png", "avatar": "images/217_宋应升.png" }, { "name": "迅娃儿", "rarity": "卿", "art": "art/218_迅娃儿.png", "avatar": "images/218_迅娃儿.png" }, { "name": "骆问机", "rarity": "卿", "art": "art/219_骆问机.png", "avatar": "images/219_骆问机.png" }, { "name": "陈随", "rarity": "卿", "art": "art/220_陈随.png", "avatar": "images/220_陈随.png" }, { "name": "元卜意", "rarity": "卿", "art": "art/221_元卜意.png", "avatar": "images/221_元卜意.png" }, { "name": "陶姜", "rarity": "卿", "art": "art/222_陶姜.png", "avatar": "images/222_陶姜.png" }, { "name": "秦子棠", "rarity": "卿", "art": "art/223_秦子棠.png", "avatar": "images/223_秦子棠.png" }, { "name": "文汉儒", "rarity": "卿", "art": "art/224_文汉儒.png", "avatar": "images/224_文汉儒.png" }, { "name": "狄仁杰", "rarity": "卿", "art": "art/225_狄仁杰.png", "avatar": "images/225_狄仁杰.png" }, { "name": "苏小妹", "rarity": "卿", "art": "art/226_苏小妹.png", "avatar": "images/226_苏小妹.png" }, { "name": "杜秋娘", "rarity": "卿", "art": "art/227_杜秋娘.png", "avatar": "images/227_杜秋娘.png" }, { "name": "小蛮", "rarity": "卿", "art": "art/228_小蛮.png", "avatar": "images/228_小蛮.png" }, { "name": "薛素素", "rarity": "卿", "art": "art/229_薛素素.png", "avatar": "images/229_薛素素.png" }, { "name": "聂隐娘", "rarity": "卿", "art": "art/230_聂隐娘.png", "avatar": "images/230_聂隐娘.png" }, { "name": "李师师", "rarity": "卿", "art": "art/231_李师师.png", "avatar": "images/231_李师师.png" }, { "name": "董夫人", "rarity": "卿", "art": "art/232_董夫人.png", "avatar": "images/232_董夫人.png" }, { "name": "冯梦龙", "rarity": "卿", "art": "art/233_冯梦龙.png", "avatar": "images/233_冯梦龙.png" }, { "name": "杜甫", "rarity": "卿", "art": "art/234_杜甫.png", "avatar": "images/234_杜甫.png" }, { "name": "大和抚子", "rarity": "卿", "art": "art/235_大和抚子.png", "avatar": "images/235_大和抚子.png" }, { "name": "沈万千", "rarity": "卿", "art": "art/236_沈万千.png", "avatar": "images/236_沈万千.png" }, { "name": "丽娘", "rarity": "卿", "art": "art/237_丽娘.png", "avatar": "images/237_丽娘.png" }, { "name": "汤显祖", "rarity": "卿", "art": "art/238_汤显祖.png", "avatar": "images/238_汤显祖.png" }];
+        const R_TIAN = "天", R_HOU = "侯", R_QING = "卿";
+        const BG_MAP = { [R_TIAN]: 'images/bg_tian.png', [R_HOU]: 'images/bg_hou.png', [R_QING]: 'images/bg_qing.png' };
+        const FRAME_MAP = { [R_TIAN]: 'images/frame_tian.png', [R_HOU]: 'images/frame_hou.png', [R_QING]: 'images/frame_qing.png' };
+
+        let state = loadState(), drawMode = 1, hasDrawn = false, currentResults = [], revealIndex = -1;
+        let customPool = new Set(), stopTimer = null, isGachaRunning = false;
+
+        function defaultState() { return { collection: {}, totalDraws: 0, rarityStats: { [R_TIAN]: 0, [R_HOU]: 0, [R_QING]: 0 }, pity: 0 } }
+        function loadState() { try { const s = localStorage.getItem('jn_gacha_v6'); if (s) { const d = defaultState(), p = JSON.parse(s); return { ...d, ...p, rarityStats: { ...d.rarityStats, ...(p.rarityStats || {}) } } } } catch (e) { } return defaultState() }
+        function saveState() { localStorage.setItem('jn_gacha_v6', JSON.stringify(state)) }
+
+        // Canvas
+        const canvas = document.getElementById('drawCanvas'), ctx = canvas.getContext('2d');
+        let isDrawing = false, lastX = 0, lastY = 0;
+        function setupCanvas() { const r = canvas.parentElement.getBoundingClientRect(), d = window.devicePixelRatio || 1; canvas.width = r.width * d; canvas.height = 400 * d; canvas.style.height = '400px'; ctx.scale(d, d); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 5; ctx.strokeStyle = '#3d2b1f' }
+        setupCanvas();
+        window.addEventListener('resize', () => { const d = canvas.toDataURL(); setupCanvas(); const i = new Image(); i.onload = () => ctx.drawImage(i, 0, 0, canvas.width / (window.devicePixelRatio || 1), 400); i.src = d });
+        function getPos(e) { const r = canvas.getBoundingClientRect(), t = e.touches ? e.touches[0] : e; return { x: t.clientX - r.left, y: t.clientY - r.top } }
+        function startDraw(e) { e.preventDefault(); if (isGachaRunning) return; isDrawing = true; hasDrawn = true; document.getElementById('canvasOverlay').classList.add('hidden'); clearTimeout(stopTimer); const p = getPos(e); lastX = p.x; lastY = p.y }
+        function doDraw(e) { if (!isDrawing) return; e.preventDefault(); clearTimeout(stopTimer); const p = getPos(e); ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(p.x, p.y); ctx.stroke(); lastX = p.x; lastY = p.y }
+        function stopDraw(e) { if (e) e.preventDefault(); if (!isDrawing) return; isDrawing = false; clearTimeout(stopTimer); stopTimer = setTimeout(() => { if (hasDrawn && !isGachaRunning) triggerGacha() }, 800) }
+        canvas.addEventListener('mousedown', startDraw); canvas.addEventListener('mousemove', doDraw);
+        canvas.addEventListener('mouseup', stopDraw); canvas.addEventListener('mouseleave', stopDraw);
+        canvas.addEventListener('touchstart', startDraw, { passive: false }); canvas.addEventListener('touchmove', doDraw, { passive: false });
+        canvas.addEventListener('touchend', stopDraw, { passive: false });
+        function clearCanvas() { const d = window.devicePixelRatio || 1; ctx.clearRect(0, 0, canvas.width / d, 400); hasDrawn = false; clearTimeout(stopTimer); document.getElementById('canvasOverlay').classList.remove('hidden') }
+        function setMode(m) { drawMode = m; document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.mode) === m)) }
+
+        // Gacha
+        function getActivePool() { return customPool.size > 0 ? ALL_CHARS.filter(c => customPool.has(c.name)) : ALL_CHARS }
+        function rollRarity() { const r = Math.random(); if (r < 0.06) return R_TIAN; if (r < 0.32) return R_HOU; return R_QING }
+        function rollCharacter(rarity) { let pool = getActivePool().filter(c => c.rarity === rarity); if (!pool.length) { pool = getActivePool(); if (!pool.length) return { name: '???', rarity: R_QING, art: '', avatar: '' } } return pool[Math.floor(Math.random() * pool.length)] }
+        function doGacha(count) { const results = []; for (let i = 0; i < count; i++) { const rarity = rollRarity(), char = rollCharacter(rarity), isNew = !state.collection[char.name]; results.push({ ...char, isNew }); state.collection[char.name] = (state.collection[char.name] || 0) + 1; state.totalDraws++; state.rarityStats[rarity]++; if (rarity === R_TIAN) state.pity = 0; else state.pity++ } saveState(); return results }
+        function triggerGacha() { isGachaRunning = true; currentResults = doGacha(drawMode); clearCanvas(); updateQuickStats(); if (drawMode === 1) { showAllResults(currentResults); isGachaRunning = false } else startReveal(0) }
+
+        // Reveal
+        function startReveal(idx) { revealIndex = idx; document.getElementById('revealOverlay').classList.add('show'); showRevealCard(idx) }
+        function showRevealCard(idx) { if (idx >= currentResults.length) { document.getElementById('revealOverlay').classList.remove('show'); showAllResults(currentResults); isGachaRunning = false; return } revealIndex = idx; const r = currentResults[idx]; const area = document.getElementById('revealArtArea'); const bg = document.getElementById('revealBg'); const art = document.getElementById('revealArt'); const nameEl = document.getElementById('revealName'); const newTag = document.getElementById('revealNew'); area.classList.remove('visible'); nameEl.classList.remove('visible'); bg.src = BG_MAP[r.rarity] || ''; art.src = r.art || ''; art.onerror = () => { art.src = r.avatar || ''; art.onerror = () => { art.style.display = 'none' } }; nameEl.textContent = r.name; nameEl.className = 'reveal-name ' + r.rarity; newTag.style.display = r.isNew ? 'block' : 'none'; document.getElementById('revealCounter').textContent = `${idx + 1} / ${currentResults.length}`; document.getElementById('sparkles').innerHTML = ''; requestAnimationFrame(() => requestAnimationFrame(() => { area.classList.add('visible'); nameEl.classList.add('visible') })); if (r.rarity === R_TIAN) setTimeout(createSparkles, 300) }
+        function nextReveal() { showRevealCard(revealIndex + 1) }
+        function createSparkles() { const c = document.getElementById('sparkles'); if (!c) return; c.innerHTML = ''; for (let i = 0; i < 20; i++) { const s = document.createElement('div'); s.className = 'sparkle'; s.style.left = Math.random() * 100 + '%'; s.style.top = Math.random() * 100 + '%'; s.style.setProperty('--tx', (Math.random() - .5) * 80 + 'px'); s.style.setProperty('--ty', (Math.random() - .5) * 80 + 'px'); s.style.animationDelay = Math.random() * .5 + 's'; s.style.width = (3 + Math.random() * 6) + 'px'; s.style.height = s.style.width; c.appendChild(s) } }
+        function skipAll() { document.getElementById('revealOverlay').classList.remove('show'); showAllResults(currentResults); isGachaRunning = false }
+
+        // All results
+        function showAllResults(results) { const grid = document.getElementById('allResultsGrid'); document.getElementById('allResultsTitle').textContent = `获得 ${results.length} 位角色`; let h = ''; results.forEach((r, i) => { h += `<div class="mini-card ${r.rarity}" style="animation-delay:${i * .05}s" onclick="showCharDetail('${r.name}','${r.rarity}')">${r.isNew ? '<div class="mc-new">NEW</div>' : ''}<img class="mc-bg" src="${BG_MAP[r.rarity]}"><img class="mc-art" src="${r.art}" onerror="this.src='${r.avatar}';this.onerror=null"><div class="mc-name">${r.name}</div></div>` }); grid.innerHTML = h; document.getElementById('allResultsOverlay').classList.add('show') }
+        function closeAllResults() { document.getElementById('allResultsOverlay').classList.remove('show') }
+
+        // Custom pool
+        function openPool() { document.getElementById('poolOverlay').classList.add('show'); renderPoolGrid() }
+        function closePool() { document.getElementById('poolOverlay').classList.remove('show'); updatePoolToggle() }
+        function updatePoolToggle() { const b = document.getElementById('poolToggle'); b.classList.toggle('active', customPool.size > 0); b.textContent = customPool.size > 0 ? `角色池(${customPool.size})` : '角色池' }
+        function renderPoolGrid() { const grid = document.getElementById('poolGrid'), search = (document.getElementById('poolSearch').value || '').toLowerCase(); let filtered = ALL_CHARS; if (search) filtered = ALL_CHARS.filter(c => c.name.toLowerCase().includes(search)); filtered.sort((a, b) => { const o = { [R_TIAN]: 0, [R_HOU]: 1, [R_QING]: 2 }; return o[a.rarity] - o[b.rarity] }); let h = ''; filtered.forEach(c => { const sel = customPool.has(c.name); h += `<div class="pool-item ${c.rarity} ${sel ? 'selected' : ''}" onclick="togglePoolItem('${c.name}')"><div class="check-mark">\u2713</div><img class="pi-avatar" src="${c.avatar}" onerror="this.style.display='none'"><img class="pi-frame" src="${FRAME_MAP[c.rarity]}"><div class="pi-name">${c.name}</div></div>` }); grid.innerHTML = h; document.getElementById('poolInfo').textContent = `已选 ${customPool.size} / ${ALL_CHARS.length} 个角色（未选择时使用全部角色）` }
+        function togglePoolItem(name) { if (customPool.has(name)) customPool.delete(name); else customPool.add(name); renderPoolGrid() }
+        function clearPool() { customPool.clear(); renderPoolGrid() }
+        function selectAll() { ALL_CHARS.forEach(c => customPool.add(c.name)); renderPoolGrid() }
+        function filterPool() { renderPoolGrid() }
+
+        // Quick stats
+        function updateQuickStats() { const el = document.getElementById('quickStats'), total = ALL_CHARS.length, collected = Object.keys(state.collection).length; el.innerHTML = `<div class="stat-chip">总抽数: <strong>${state.totalDraws}</strong></div><div class="stat-chip">已收集: <strong>${collected}/${total}</strong></div><div class="stat-chip">天级: <strong>${state.rarityStats[R_TIAN]}</strong></div><div class="stat-chip">候级: <strong>${state.rarityStats[R_HOU]}</strong></div>` }
+
+        // Collection
+        let collectionFilter = 'all';
+        function renderCollection() { const grid = document.getElementById('collectionGrid'), progress = document.getElementById('collectionProgress'), total = ALL_CHARS.length, collected = Object.keys(state.collection).length, pct = total > 0 ? (collected / total * 100).toFixed(1) : 0; progress.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;font-weight:600">收集进度</span><span style="font-size:13px;color:var(--accent-red);font-weight:700">${collected} / ${total} (${pct}%)</span></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>`; let filtered = ALL_CHARS; if (collectionFilter !== 'all') filtered = ALL_CHARS.filter(c => c.rarity === collectionFilter); filtered.sort((a, b) => { const ah = state.collection[a.name] ? 1 : 0, bh = state.collection[b.name] ? 1 : 0; if (ah !== bh) return bh - ah; const o = { [R_TIAN]: 0, [R_HOU]: 1, [R_QING]: 2 }; return o[a.rarity] - o[b.rarity] }); let h = ''; filtered.forEach(c => { const cnt = state.collection[c.name] || 0, locked = cnt === 0; h += `<div class="collection-item ${c.rarity} ${locked ? 'locked' : ''}" onclick="showCharDetail('${c.name}','${c.rarity}')"><img class="ci-avatar" src="${c.avatar}" onerror="this.style.display='none'"><img class="ci-frame" src="${FRAME_MAP[c.rarity]}"><div class="ci-name">${c.name}</div>${cnt > 1 ? `<div class="ci-count">x${cnt}</div>` : ''}</div>` }); grid.innerHTML = h }
+
+        // Stats
+        function renderStats() { const grid = document.getElementById('statsGrid'), total = ALL_CHARS.length, collected = Object.keys(state.collection).length; const tT = ALL_CHARS.filter(c => c.rarity === R_TIAN).length, hT = ALL_CHARS.filter(c => c.rarity === R_HOU).length; const tC = ALL_CHARS.filter(c => c.rarity === R_TIAN && state.collection[c.name]).length, hC = ALL_CHARS.filter(c => c.rarity === R_HOU && state.collection[c.name]).length; grid.innerHTML = `<div class="stat-card"><div class="sv">${state.totalDraws}</div><div class="sl">总抽数</div></div><div class="stat-card"><div class="sv">${collected}<span style="font-size:13px;color:#8b7355">/${total}</span></div><div class="sl">已收集角色</div></div><div class="stat-card"><div class="sv" style="color:#b8860b">${tC}<span style="font-size:13px;color:#8b7355">/${tT}</span></div><div class="sl">天级收集</div></div><div class="stat-card"><div class="sv" style="color:#2a5a8a">${hC}<span style="font-size:13px;color:#8b7355">/${hT}</span></div><div class="sl">候级收集</div></div>`; const cmp = document.getElementById('probCompare'), td = state.totalDraws || 1; const tp = (state.rarityStats[R_TIAN] / td * 100), hp = (state.rarityStats[R_HOU] / td * 100), qp = (state.rarityStats[R_QING] / td * 100); cmp.innerHTML = `<h3>概率对比 (实际 vs 理论)</h3><div class="prob-row"><div class="pl" style="color:#b8860b">天级</div><div class="pb"><div class="pt" style="left:6%"></div><div class="pf gold" style="width:${Math.max(tp, 1)}%">${tp.toFixed(1)}%</div></div><div class="pp">6.0%</div></div><div class="prob-row"><div class="pl" style="color:#2a5a8a">候级</div><div class="pb"><div class="pt" style="left:26%"></div><div class="pf blue" style="width:${Math.max(hp, 1)}%">${hp.toFixed(1)}%</div></div><div class="pp">26.0%</div></div><div class="prob-row"><div class="pl" style="color:#2e7d32">卿级</div><div class="pb"><div class="pt" style="left:68%"></div><div class="pf green" style="width:${Math.max(qp, 1)}%">${qp.toFixed(1)}%</div></div><div class="pp">68.0%</div></div><div style="font-size:10px;color:#b0a090;margin-top:4px">虚线 = 理论概率</div>`; const rank = document.getElementById('rankList'), sorted = Object.entries(state.collection).sort((a, b) => b[1] - a[1]).slice(0, 10); if (!sorted.length) rank.innerHTML = '<div style="text-align:center;padding:30px;color:#b0a090">暂无数据</div>'; else { let h = '<h3>重复最多排行</h3>'; sorted.forEach(([n, c], i) => { const ch = ALL_CHARS.find(x => x.name === n), r = ch ? ch.rarity : R_QING, cl = r === R_TIAN ? '#b8860b' : r === R_HOU ? '#2a5a8a' : '#2e7d32'; h += `<div class="rank-item"><div class="rank-num">${i + 1}</div><div class="rank-name" style="color:${cl}">${n}</div><div class="rank-count">x${c}</div></div>` }); rank.innerHTML = h } }
+
+        // Detail modal - shows artwork with background
+        function showCharDetail(name, rarity) { const modal = document.getElementById('modal'), content = document.getElementById('modalContent'); const count = state.collection[name] || 0; const char = ALL_CHARS.find(c => c.name === name); const art = char ? char.art : ''; const avatar = char ? char.avatar : ''; const tc = rarity === R_TIAN ? '#ffd700' : rarity === R_HOU ? '#6ab0ff' : '#81c784'; content.innerHTML = `<div class="modal-art-area"><img class="ma-bg" src="${BG_MAP[rarity]}"><img class="ma-art" src="${art}" onerror="this.src='${avatar}';this.onerror=null">${!count ? '<div class="ma-new">NEW</div>' : ''}</div><div class="modal-info"><div class="mi-name ${rarity}">${name}</div><div class="mi-count">已获得 ${count} 次</div><button class="modal-close" onclick="document.getElementById('modal').classList.remove('show')">关闭</button></div>`; modal.classList.add('show') }
+        function closeModal(e) { if (e.target === e.currentTarget) document.getElementById('modal').classList.remove('show') }
+
+        function resetAll() { if (!confirm('确定要重置所有抽卡数据吗？')) return; state = defaultState(); saveState(); updateQuickStats(); renderCollection(); renderStats() }
+
+        document.querySelectorAll('.nav-tab').forEach(tab => { tab.addEventListener('click', () => { document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); tab.classList.add('active'); document.getElementById('tab-' + tab.dataset.tab).classList.add('active'); if (tab.dataset.tab === 'collection') renderCollection(); if (tab.dataset.tab === 'stats') renderStats() }) });
+        document.querySelectorAll('.filter-btn').forEach(btn => { btn.addEventListener('click', () => { document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); collectionFilter = btn.dataset.filter; renderCollection() }) });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') { ['modal', 'allResultsOverlay', 'revealOverlay', 'poolOverlay'].forEach(id => document.getElementById(id).classList.remove('show')) } });
+
+        updateQuickStats();
+    </script>
+</body>
+
+</html>
