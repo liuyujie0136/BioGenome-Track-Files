@@ -1312,6 +1312,70 @@
             background: var(--border-light);
             border-radius: 2px
         }
+
+        /* Stats display in modal */
+        .mi-stats {
+            margin: 8px 0;
+            text-align: center;
+        }
+
+        .mi-specialty {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+
+        .mi-stats-header {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            margin-bottom: 4px;
+        }
+
+        .mi-stats-header span {
+            width: 48px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #fff;
+            text-align: center;
+        }
+
+        .mi-stats-values {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .mi-stats-values span {
+            width: 48px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #000;
+            text-align: center;
+            border-radius: 4px;
+            padding: 2px 0;
+        }
+
+        .mi-stats-values span.rank-s {
+            background: #ffd700;
+        }
+
+        .mi-stats-values span.rank-a {
+            background: #87ceeb;
+        }
+
+        .mi-stats-values span.rank-b {
+            background: #90ee90;
+        }
+
+        .mi-stats-values span.rank-c {
+            background: #fff;
+        }
+
+        .mi-stats-values span.rank-d {
+            background: #d3d3d3;
+        }
     </style>
 </head>
 
@@ -1412,6 +1476,7 @@
         const R_TIAN = "天", R_HOU = "侯", R_QING = "卿";
         const BG_MAP = { [R_TIAN]: 'images/bg_tian.png', [R_HOU]: 'images/bg_hou.png', [R_QING]: 'images/bg_qing.png' };
         const FRAME_MAP = { [R_TIAN]: 'images/frame_tian.png', [R_HOU]: 'images/frame_hou.png', [R_QING]: 'images/frame_qing.png' };
+        const STATS_MAP = { "榴见月": { "v": [66, 794, 433, 247, 608], "best": ["农牧"] }, "王羲之": { "v": [248, 423, 779, 609, 67], "best": ["制作"] }, "卫铄": { "v": [96, 67, 419, 609, 247], "best": ["理财"] }, "麻姑": { "v": [610, 793, 243, 97, 440], "best": ["农牧"] }, "钟雪渔": { "v": [608, 422, 778, 241, 66], "best": ["制作"] }, "钟驰": { "v": [245, 429, 94, 65, 602], "best": ["探险"] }, "元稹": { "v": [422, 612, 247, 88, 794], "best": ["探险"] }, "张居正": { "v": [247, 438, 794, 608, 95], "best": ["制作"] }, "管道昇": { "v": [422, 247, 608, 778, 66], "best": ["理财"] }, "赵孟頫": { "v": [601, 416, 244, 603, 93], "best": ["理财"] }, "马致远": { "v": [247, 256, 608, 88, 778], "best": ["探险"] }, "貂蝉": { "v": [66, 778, 247, 422, 608], "best": ["农牧"] }, "贺兰珠": { "v": [88, 608, 247, 794, 422], "best": ["理财"] }, "傅肱": { "v": [86, 606, 238, 64, 434], "best": ["农牧"] }, "孟婆": { "v": [608, 438, 778, 66, 241], "best": ["制作"] }, "丘阿芥": { "v": [431, 92, 63, 242, 424], "best": ["建造"] }, "迟保保": { "v": [96, 241, 612, 431, 89], "best": ["制作"] }, "李商隐": { "v": [88, 612, 438, 778, 422], "best": ["理财"] }, "李煜": { "v": [608, 66, 794, 256, 612], "best": ["制作"] }, "龙汐": { "v": [246, 777, 65, 432, 607], "best": ["农牧"] }, "龙璃": { "v": [608, 438, 778, 66, 241], "best": ["制作"] }, "范钦": { "v": [612, 241, 794, 66, 438], "best": ["制作"] }, "袁澄": { "v": [238, 86, 434, 606, 253], "best": ["理财"] }, "刘解忧": { "v": [249, 68, 614, 780, 424], "best": ["理财"] }, "冯嫽": { "v": [239, 87, 65, 417, 604], "best": ["探险"] }, "陶渊明": { "v": [614, 796, 440, 258, 97], "best": ["农牧"] }, "桃朵儿": { "v": [88, 608, 255, 66, 436], "best": ["农牧"] }, "宋应星": { "v": [778, 438, 608, 256, 95], "best": ["建造"] }, "宋应升": { "v": [85, 242, 251, 595, 431], "best": ["理财"] }, "干宝": { "v": [612, 66, 438, 241, 794], "best": ["探险"] }, "刘采春": { "v": [434, 779, 248, 96, 609], "best": ["农牧"] }, "苏辙": { "v": [86, 416, 93, 238, 606], "best": ["探险"] }, "汤姑": { "v": [248, 434, 792, 609, 257], "best": ["制作"] }, "汤大年": { "v": [94, 435, 65, 607, 245], "best": ["理财"] }, "马秀英": { "v": [243, 435, 796, 610, 435], "best": ["制作"] }, "柳永": { "v": [794, 88, 438, 247, 608], "best": ["建造"] }, "薛涛": { "v": [440, 258, 610, 793, 68], "best": ["理财"] }, "李冶": { "v": [417, 245, 65, 87, 602], "best": ["探险"] }, "燕阿紫": { "v": [93, 606, 434, 64, 434], "best": ["农牧"] }, "莫邪": { "v": [244, 416, 253, 86, 601], "best": ["探险"] }, "干将": { "v": [608, 247, 791, 608, 66], "best": ["制作"] }, "范泊宁": { "v": [438, 256, 247, 612, 794], "best": ["探险"] }, "张舟师": { "v": [603, 428, 244, 64, 434], "best": ["建造"] }, "道济": { "v": [247, 438, 791, 88, 608], "best": ["制作"] }, "徐妙云": { "v": [607, 777, 432, 611, 255], "best": ["农牧"] }, "计成": { "v": [794, 438, 608, 256, 422], "best": ["建造"] }, "段成式": { "v": [247, 791, 438, 88, 608], "best": ["农牧"] }, "肖含珠": { "v": [97, 249, 424, 796, 610], "best": ["理财"] }, "红拂": { "v": [607, 246, 246, 421, 793], "best": ["探险"] }, "公输般": { "v": [612, 422, 778, 422, 247], "best": ["制作"] }, "周游越": { "v": [66, 240, 436, 608, 418], "best": ["理财"] }, "卫寻彩": { "v": [433, 247, 794, 612, 608], "best": ["制作"] }, "上官婉儿": { "v": [437, 240, 607, 777, 421], "best": ["理财"] }, "迅娃儿": { "v": [63, 431, 63, 242, 411], "best": ["农牧"] }, "成凤羽": { "v": [794, 438, 778, 256, 422], "best": ["建造"] }, "李青溪": { "v": [246, 603, 88, 430, 95], "best": ["农牧"] }, "王祯": { "v": [434, 779, 609, 257, 89], "best": ["农牧"] }, "史立清": { "v": [243, 412, 93, 86, 252], "best": ["农牧"] }, "慕姣姣": { "v": [65, 429, 245, 87, 604], "best": ["探险"] }, "金鲤": { "v": [93, 416, 416, 601, 86], "best": ["理财"] }, "公孙策": { "v": [438, 247, 778, 256, 608], "best": ["制作"] }, "东方祚": { "v": [247, 256, 608, 88, 791], "best": ["探险"] }, "吕穹生": { "v": [778, 608, 433, 241, 247], "best": ["建造"] }, "花宜芳": { "v": [238, 428, 603, 416, 86], "best": ["制作"] }, "文简": { "v": [416, 64, 601, 86, 238], "best": ["制作"] }, "桑岷": { "v": [241, 778, 438, 608, 256], "best": ["农牧"] }, "百里安": { "v": [246, 437, 777, 790, 240], "best": ["理财"] }, "鹿经纬": { "v": [249, 610, 780, 435, 243], "best": ["制作"] }, "姬荔": { "v": [435, 602, 87, 254, 435], "best": ["农牧"] }, "马远道": { "v": [422, 612, 247, 608, 794], "best": ["探险"] }, "张山归": { "v": [434, 613, 609, 248, 779], "best": ["探险"] }, "林卫木": { "v": [428, 606, 244, 86, 416], "best": ["农牧"] }, "宋沉吟": { "v": [245, 429, 417, 602, 87], "best": ["理财"] }, "余妙年": { "v": [90, 780, 243, 614, 610], "best": ["农牧"] }, "柯有樵": { "v": [252, 243, 412, 237, 86], "best": ["制作"] }, "乔溪午": { "v": [607, 255, 607, 432, 793], "best": ["探险"] }, "乔沐": { "v": [797, 250, 91, 436, 794], "best": ["建造"] }, "涂南山": { "v": [607, 777, 437, 255, 421], "best": ["农牧"] }, "红鸾": { "v": [257, 439, 257, 609, 792], "best": ["探险"] }, "骆问机": { "v": [251, 92, 63, 242, 411], "best": ["探险"] }, "冯令吉": { "v": [249, 610, 780, 435, 610], "best": ["制作"] }, "武鸣月": { "v": [88, 95, 786, 246, 95], "best": ["制作"] }, "令风来": { "v": [795, 608, 270, 612, 446], "best": ["建造"] }, "万千山": { "v": [791, 256, 438, 256, 608], "best": ["建造"] }, "千暮雪": { "v": [64, 253, 603, 428, 416], "best": ["制作"] }, "杨婳": { "v": [247, 778, 433, 612, 608], "best": ["农牧"] }, "陈随": { "v": [63, 251, 411, 63, 236], "best": ["制作"] }, "元卜意": { "v": [64, 252, 86, 243, 432], "best": ["探险"] }, "李星罗": { "v": [610, 440, 68, 258, 780], "best": ["探险"] }, "顾小九": { "v": [608, 256, 794, 438, 612], "best": ["制作"] }, "顾半城": { "v": [416, 86, 428, 603, 238], "best": ["理财"] }, "盛羽林": { "v": [602, 82, 245, 94, 417], "best": ["建造"] }, "王扶危": { "v": [609, 609, 257, 795, 434], "best": ["理财"] }, "柳笑翁": { "v": [257, 609, 439, 779, 613], "best": ["理财"] }, "柳春莺": { "v": [87, 254, 429, 435, 602], "best": ["探险"] }, "夏剪春": { "v": [64, 253, 603, 428, 416], "best": ["制作"] }, "叶闻灯": { "v": [256, 608, 791, 612, 433], "best": ["制作"] }, "凤扬": { "v": [247, 778, 433, 612, 608], "best": ["农牧"] }, "秦挽铮": { "v": [795, 257, 434, 609, 613], "best": ["建造"] }, "罗一响": { "v": [435, 65, 87, 607, 254], "best": ["理财"] }, "秦奚": { "v": [241, 433, 791, 608, 433], "best": ["制作"] }, "杜言游": { "v": [64, 416, 86, 238, 606], "best": ["探险"] }, "公子礼": { "v": [791, 256, 438, 612, 608], "best": ["建造"] }, "荣嘉": { "v": [244, 434, 238, 601, 64], "best": ["理财"] }, "兰心娴": { "v": [257, 434, 795, 792, 439], "best": ["制作"] }, "金魏": { "v": [247, 778, 612, 608, 256], "best": ["农牧"] }, "李旋箫": { "v": [65, 65, 245, 604, 435], "best": ["理财"] }, "陶姜": { "v": [85, 236, 424, 251, 63], "best": ["制作"] }, "邱仲": { "v": [604, 239, 65, 94, 429], "best": ["建造"] }, "孟余": { "v": [96, 434, 779, 613, 257], "best": ["制作"] }, "姜喜": { "v": [257, 609, 795, 423, 248], "best": ["制作"] }, "姜寿": { "v": [434, 93, 238, 601, 238], "best": ["理财"] }, "飞花": { "v": [257, 609, 795, 423, 434], "best": ["制作"] }, "弥月": { "v": [794, 438, 778, 256, 241], "best": ["建造"] }, "泉先": { "v": [242, 257, 439, 792, 609], "best": ["理财"] }, "江行": { "v": [792, 609, 257, 96, 434], "best": ["建造"] }, "公孙跃": { "v": [95, 241, 612, 256, 778], "best": ["探险"] }, "卢璨": { "v": [247, 433, 794, 608, 256], "best": ["制作"] }, "窦有禅": { "v": [65, 602, 435, 239, 417], "best": ["农牧"] }, "刘玉谨": { "v": [65, 245, 607, 239, 417], "best": ["制作"] }, "卢璀": { "v": [609, 795, 439, 257, 242], "best": ["农牧"] }, "裴闻镜": { "v": [253, 64, 603, 416, 428], "best": ["制作"] }, "高优": { "v": [252, 243, 93, 237, 412], "best": ["探险"] }, "花晚照": { "v": [64, 434, 238, 253, 601], "best": ["探险"] }, "向斜阳": { "v": [247, 608, 778, 433, 66], "best": ["制作"] }, "曹亦": { "v": [254, 87, 65, 429, 604], "best": ["探险"] }, "秦子棠": { "v": [236, 63, 85, 411, 92], "best": ["理财"] }, "胡月眉": { "v": [256, 88, 778, 612, 422], "best": ["制作"] }, "杜言行": { "v": [65, 602, 87, 417, 245], "best": ["农牧"] }, "孟好学": { "v": [795, 67, 792, 248, 67], "best": ["建造"] }, "高舞": { "v": [434, 253, 93, 244, 601], "best": ["探险"] }, "麦小满": { "v": [257, 439, 257, 609, 779], "best": ["探险"] }, "百里沉香": { "v": [66, 778, 794, 241, 88], "best": ["制作"] }, "宫商羽": { "v": [423, 248, 613, 779, 609], "best": ["理财"] }, "元采蓝": { "v": [434, 93, 601, 238, 86], "best": ["制作"] }, "成梁": { "v": [794, 256, 791, 438, 66], "best": ["建造"] }, "时闯": { "v": [435, 94, 87, 239, 602], "best": ["探险"] }, "端木偃": { "v": [67, 434, 613, 795, 609], "best": ["理财"] }, "乐闻": { "v": [86, 606, 416, 64, 253], "best": ["农牧"] }, "鹿溪隐": { "v": [241, 438, 794, 778, 66], "best": ["制作"] }, "云踏雪": { "v": [434, 613, 795, 89, 609], "best": ["制作"] }, "云晴雪": { "v": [602, 254, 87, 429, 417], "best": ["建造"] }, "文汉儒": { "v": [242, 63, 236, 431, 63], "best": ["理财"] }, "蛋生": { "v": [613, 89, 434, 795, 609], "best": ["理财"] }, "袁公": { "v": [87, 435, 602, 65, 245], "best": ["制作"] }, "满庭芳": { "v": [64, 434, 238, 601, 86], "best": ["理财"] }, "天机子": { "v": [439, 795, 613, 609, 67], "best": ["农牧"] }, "小玉": { "v": [607, 255, 777, 421, 246], "best": ["制作"] }, "龙女": { "v": [239, 435, 94, 602, 65], "best": ["理财"] }, "郭天问": { "v": [606, 601, 93, 64, 238], "best": ["建造"] }, "佘太君": { "v": [253, 434, 428, 603, 64], "best": ["理财"] }, "杨宗保": { "v": [792, 67, 439, 248, 609], "best": ["建造"] }, "狄仁杰": { "v": [432, 64, 86, 237, 243], "best": ["建造"] }, "哪吒": { "v": [256, 256, 608, 88, 778], "best": ["探险"] }, "红孩儿": { "v": [428, 93, 244, 603, 64], "best": ["理财"] }, "谢道韫": { "v": [428, 253, 603, 64, 244], "best": ["制作"] }, "程大位": { "v": [247, 256, 433, 794, 791], "best": ["理财"] }, "蓝玉": { "v": [434, 253, 64, 64, 601], "best": ["探险"] }, "万户": { "v": [251, 63, 242, 63, 411], "best": ["探险"] }, "屈原": { "v": [610, 780, 614, 90, 435], "best": ["农牧"] }, "苏轼": { "v": [247, 66, 778, 791, 608], "best": ["理财"] }, "苏小妹": { "v": [252, 93, 243, 425, 64], "best": ["理财"] }, "罗贯中": { "v": [790, 255, 432, 607, 611], "best": ["建造"] }, "兰陵笑笑生": { "v": [65, 429, 254, 607, 65], "best": ["理财"] }, "施耐庵": { "v": [778, 433, 438, 247, 794], "best": ["探险"] }, "吴承恩": { "v": [65, 437, 793, 65, 790], "best": ["制作"] }, "金圣叹": { "v": [603, 428, 64, 64, 253], "best": ["建造"] }, "袁可立": { "v": [255, 608, 430, 418, 605], "best": ["农牧"] }, "木增": { "v": [602, 429, 254, 602, 65], "best": ["建造", "理财"] }, "小青": { "v": [256, 67, 437, 606, 431], "best": ["理财"] }, "杜秋娘": { "v": [251, 251, 431, 63, 63], "best": ["制作"] }, "温庭筠": { "v": [253, 428, 253, 64, 603], "best": ["探险"] }, "鱼玄机": { "v": [256, 794, 608, 608, 66], "best": ["农牧"] }, "杜牧": { "v": [605, 415, 92, 600, 237], "best": ["建造"] }, "嵇康": { "v": [67, 242, 779, 795, 248], "best": ["理财"] }, "阮籍": { "v": [89, 604, 437, 606, 247], "best": ["理财"] }, "戚继光": { "v": [614, 610, 424, 435, 780], "best": ["探险"] }, "王如一": { "v": [417, 94, 429, 607, 602], "best": ["理财"] }, "沈度": { "v": [243, 68, 796, 780, 90], "best": ["制作"] }, "陆深": { "v": [245, 602, 604, 429, 239], "best": ["制作"] }, "魏徵": { "v": [415, 539, 252, 252, 605], "best": ["探险"] }, "左思": { "v": [434, 238, 772, 244, 244], "best": ["制作"] }, "姚广孝": { "v": [605, 240, 605, 418, 95], "best": ["建造", "制作"] }, "朱棣": { "v": [256, 794, 256, 612, 778], "best": ["农牧"] }, "展昭": { "v": [792, 242, 439, 96, 609], "best": ["建造"] }, "白玉堂": { "v": [415, 243, 429, 605, 602], "best": ["理财"] }, "苏武": { "v": [239, 607, 245, 94, 607], "best": ["农牧", "探险"] }, "文俶": { "v": [790, 777, 240, 611, 94], "best": ["建造"] }, "仇珠": { "v": [435, 424, 610, 424, 793], "best": ["探险"] }, "徐祯卿": { "v": [780, 440, 243, 793, 97], "best": ["理财"] }, "祝枝山": { "v": [245, 604, 785, 254, 417], "best": ["制作"] }, "刘淑贞": { "v": [418, 603, 255, 608, 255], "best": ["理财"] }, "奢香": { "v": [790, 777, 246, 94, 607], "best": ["建造"] }, "小蛮": { "v": [433, 597, 253, 94, 87], "best": ["农牧"] }, "白居易": { "v": [778, 433, 433, 88, 794], "best": ["探险"] }, "赵明诚": { "v": [602, 417, 239, 94, 254], "best": ["建造"] }, "罗素月": { "v": [423, 609, 792, 439, 434], "best": ["制作"] }, "林奴儿": { "v": [238, 238, 416, 603, 93], "best": ["理财"] }, "钟馗": { "v": [431, 604, 606, 241, 419], "best": ["制作"] }, "祝英台": { "v": [777, 94, 240, 777, 437], "best": ["建造", "理财"] }, "梁山伯": { "v": [603, 418, 436, 240, 603], "best": ["建造", "探险"] }, "马文才": { "v": [84, 235, 91, 235, 62], "best": ["农牧", "理财"] }, "马蓬瀛": { "v": [433, 794, 241, 247, 95], "best": ["农牧"] }, "谈允贤": { "v": [94, 240, 607, 777, 607], "best": ["理财"] }, "张择端": { "v": [794, 608, 612, 241, 241], "best": ["建造"] }, "仇英": { "v": [437, 87, 793, 607, 421], "best": ["制作"] }, "沈括": { "v": [431, 792, 776, 93, 93], "best": ["农牧"] }, "武则天": { "v": [424, 610, 793, 610, 97], "best": ["制作"] }, "黄道婆": { "v": [437, 607, 793, 421, 65], "best": ["制作"] }, "包拯": { "v": [789, 606, 610, 436, 420], "best": ["建造"] }, "王昭君": { "v": [97, 243, 793, 243, 793], "best": ["制作", "探险"] }, "玄奘": { "v": [614, 780, 424, 243, 796], "best": ["探险"] }, "沈周": { "v": [241, 433, 608, 778, 612], "best": ["理财"] }, "常遇春": { "v": [610, 424, 793, 440, 793], "best": ["制作", "探险"] }, "唐伯虎": { "v": [781, 425, 794, 611, 259], "best": ["制作"] }, "李清照": { "v": [440, 610, 424, 796, 243], "best": ["理财"] }, "李白": { "v": [607, 607, 607, 432, 790], "best": ["探险"] }, "刘伯温": { "v": [792, 239, 776, 420, 86], "best": ["建造"] }, "白素贞": { "v": [425, 781, 797, 441, 244], "best": ["制作"] }, "李时珍": { "v": [250, 797, 91, 436, 781], "best": ["农牧"] }, "潘安": { "v": [602, 417, 239, 245, 607], "best": ["探险"] }, "秦良玉": { "v": [65, 429, 602, 607, 435], "best": ["理财"] }, "狄青": { "v": [419, 419, 241, 437, 431], "best": ["理财"] }, "穆桂英": { "v": [429, 245, 785, 254, 417], "best": ["制作"] }, "朱元璋": { "v": [606, 784, 238, 93, 244], "best": ["农牧"] }, "许宣": { "v": [247, 419, 609, 775, 437], "best": ["理财"] }, "利玛窦": { "v": [83, 250, 413, 603, 413], "best": ["理财"] }, "徐光启": { "v": [239, 604, 417, 245, 254], "best": ["农牧"] }, "郑和": { "v": [604, 241, 241, 247, 604], "best": ["建造", "探险"] }, "徐霞客": { "v": [242, 84, 604, 236, 770], "best": ["探险"] }, "吴黎": { "v": [601, 253, 603, 93, 86], "best": ["制作"] }, "薛素素": { "v": [95, 239, 598, 414, 66], "best": ["制作"] }, "聂隐娘": { "v": [238, 94, 87, 94, 597], "best": ["探险"] }, "李师师": { "v": [93, 86, 243, 412, 64], "best": ["理财"] }, "董夫人": { "v": [87, 238, 413, 244, 94], "best": ["制作"] }, "冯梦龙": { "v": [243, 93, 243, 243, 600], "best": ["探险"] }, "杜甫": { "v": [92, 595, 251, 411, 236], "best": ["农牧"] }, "大和抚子": { "v": [239, 598, 89, 233, 408], "best": ["农牧"] }, "沈万千": { "v": [93, 425, 243, 252, 596], "best": ["探险"] }, "丽娘": { "v": [62, 235, 600, 423, 241], "best": ["制作"] }, "汤显祖": { "v": [408, 248, 89, 592, 233], "best": ["理财"] }, "董其昌": { "v": [240, 95, 786, 605, 436], "best": ["制作"] }, "文徵明": { "v": [782, 240, 249, 82, 602], "best": ["建造"] }, "阿朵": { "v": [239, 417, 604, 254, 602], "best": ["制作"] } };
 
         let state = loadState(), drawMode = 1, hasDrawn = false, currentResults = [], revealIndex = -1;
         let customPool = new Set(), stopTimer = null, isGachaRunning = false;
@@ -1442,11 +1507,35 @@
         function rollRarity() { const r = Math.random(); if (r < 0.06) return R_TIAN; if (r < 0.32) return R_HOU; return R_QING }
         function rollCharacter(rarity) { let pool = getActivePool().filter(c => c.rarity === rarity); if (!pool.length) { pool = getActivePool(); if (!pool.length) return { name: '???', rarity: R_QING, art: '', avatar: '' } } return pool[Math.floor(Math.random() * pool.length)] }
         function doGacha(count) { const results = []; for (let i = 0; i < count; i++) { const rarity = rollRarity(), char = rollCharacter(rarity), isNew = !state.collection[char.name]; results.push({ ...char, isNew }); state.collection[char.name] = (state.collection[char.name] || 0) + 1; state.totalDraws++; state.rarityStats[rarity]++; if (rarity === R_TIAN) state.pity = 0; else state.pity++ } saveState(); return results }
-        function triggerGacha() { isGachaRunning = true; currentResults = doGacha(drawMode); clearCanvas(); updateQuickStats(); if (drawMode === 1) { showAllResults(currentResults); isGachaRunning = false } else startReveal(0) }
+        function triggerGacha() { isGachaRunning = true; currentResults = doGacha(drawMode); clearCanvas(); updateQuickStats(); startReveal(0) }
 
         // Reveal
         function startReveal(idx) { revealIndex = idx; document.getElementById('revealOverlay').classList.add('show'); showRevealCard(idx) }
-        function showRevealCard(idx) { if (idx >= currentResults.length) { document.getElementById('revealOverlay').classList.remove('show'); showAllResults(currentResults); isGachaRunning = false; return } revealIndex = idx; const r = currentResults[idx]; const area = document.getElementById('revealArtArea'); const bg = document.getElementById('revealBg'); const art = document.getElementById('revealArt'); const nameEl = document.getElementById('revealName'); const newTag = document.getElementById('revealNew'); area.classList.remove('visible'); nameEl.classList.remove('visible'); bg.src = BG_MAP[r.rarity] || ''; art.src = r.art || ''; art.onerror = () => { art.src = r.avatar || ''; art.onerror = () => { art.style.display = 'none' } }; nameEl.textContent = r.name; nameEl.className = 'reveal-name ' + r.rarity; newTag.style.display = r.isNew ? 'block' : 'none'; document.getElementById('revealCounter').textContent = `${idx + 1} / ${currentResults.length}`; document.getElementById('sparkles').innerHTML = ''; requestAnimationFrame(() => requestAnimationFrame(() => { area.classList.add('visible'); nameEl.classList.add('visible') })); if (r.rarity === R_TIAN) setTimeout(createSparkles, 300) }
+        function showRevealCard(idx) {
+            if (idx >= currentResults.length) { document.getElementById('revealOverlay').classList.remove('show'); showAllResults(currentResults); isGachaRunning = false; return }
+            revealIndex = idx;
+            const r = currentResults[idx];
+            const area = document.getElementById('revealArtArea');
+            const bg = document.getElementById('revealBg');
+            const art = document.getElementById('revealArt');
+            const nameEl = document.getElementById('revealName');
+            const newTag = document.getElementById('revealNew');
+            // Fade out current
+            area.classList.remove('visible');
+            nameEl.classList.remove('visible');
+            setTimeout(() => {
+                bg.src = BG_MAP[r.rarity] || '';
+                art.src = r.art || '';
+                art.onerror = () => { art.src = r.avatar || ''; art.onerror = () => { art.style.display = 'none' } };
+                nameEl.textContent = r.name;
+                nameEl.className = 'reveal-name ' + r.rarity;
+                newTag.style.display = r.isNew ? 'block' : 'none';
+                document.getElementById('revealCounter').textContent = `${idx + 1} / ${currentResults.length}`;
+                document.getElementById('sparkles').innerHTML = '';
+                requestAnimationFrame(() => requestAnimationFrame(() => { area.classList.add('visible'); nameEl.classList.add('visible') }));
+                if (r.rarity === R_TIAN) setTimeout(createSparkles, 300);
+            }, 300);
+        }
         function nextReveal() { showRevealCard(revealIndex + 1) }
         function createSparkles() { const c = document.getElementById('sparkles'); if (!c) return; c.innerHTML = ''; for (let i = 0; i < 20; i++) { const s = document.createElement('div'); s.className = 'sparkle'; s.style.left = Math.random() * 100 + '%'; s.style.top = Math.random() * 100 + '%'; s.style.setProperty('--tx', (Math.random() - .5) * 80 + 'px'); s.style.setProperty('--ty', (Math.random() - .5) * 80 + 'px'); s.style.animationDelay = Math.random() * .5 + 's'; s.style.width = (3 + Math.random() * 6) + 'px'; s.style.height = s.style.width; c.appendChild(s) } }
         function skipAll() { document.getElementById('revealOverlay').classList.remove('show'); showAllResults(currentResults); isGachaRunning = false }
@@ -1476,7 +1565,30 @@
         function renderStats() { const grid = document.getElementById('statsGrid'), total = ALL_CHARS.length, collected = Object.keys(state.collection).length; const tT = ALL_CHARS.filter(c => c.rarity === R_TIAN).length, hT = ALL_CHARS.filter(c => c.rarity === R_HOU).length; const tC = ALL_CHARS.filter(c => c.rarity === R_TIAN && state.collection[c.name]).length, hC = ALL_CHARS.filter(c => c.rarity === R_HOU && state.collection[c.name]).length; grid.innerHTML = `<div class="stat-card"><div class="sv">${state.totalDraws}</div><div class="sl">总抽数</div></div><div class="stat-card"><div class="sv">${collected}<span style="font-size:13px;color:#8b7355">/${total}</span></div><div class="sl">已收集角色</div></div><div class="stat-card"><div class="sv" style="color:#b8860b">${tC}<span style="font-size:13px;color:#8b7355">/${tT}</span></div><div class="sl">天级收集</div></div><div class="stat-card"><div class="sv" style="color:#2a5a8a">${hC}<span style="font-size:13px;color:#8b7355">/${hT}</span></div><div class="sl">候级收集</div></div>`; const cmp = document.getElementById('probCompare'), td = state.totalDraws || 1; const tp = (state.rarityStats[R_TIAN] / td * 100), hp = (state.rarityStats[R_HOU] / td * 100), qp = (state.rarityStats[R_QING] / td * 100); cmp.innerHTML = `<h3>概率对比 (实际 vs 理论)</h3><div class="prob-row"><div class="pl" style="color:#b8860b">天级</div><div class="pb"><div class="pt" style="left:6%"></div><div class="pf gold" style="width:${Math.max(tp, 1)}%">${tp.toFixed(1)}%</div></div><div class="pp">6.0%</div></div><div class="prob-row"><div class="pl" style="color:#2a5a8a">候级</div><div class="pb"><div class="pt" style="left:26%"></div><div class="pf blue" style="width:${Math.max(hp, 1)}%">${hp.toFixed(1)}%</div></div><div class="pp">26.0%</div></div><div class="prob-row"><div class="pl" style="color:#2e7d32">卿级</div><div class="pb"><div class="pt" style="left:68%"></div><div class="pf green" style="width:${Math.max(qp, 1)}%">${qp.toFixed(1)}%</div></div><div class="pp">68.0%</div></div><div style="font-size:10px;color:#b0a090;margin-top:4px">虚线 = 理论概率</div>`; const rank = document.getElementById('rankList'), sorted = Object.entries(state.collection).sort((a, b) => b[1] - a[1]).slice(0, 10); if (!sorted.length) rank.innerHTML = '<div style="text-align:center;padding:30px;color:#b0a090">暂无数据</div>'; else { let h = '<h3>重复最多排行</h3>'; sorted.forEach(([n, c], i) => { const ch = ALL_CHARS.find(x => x.name === n), r = ch ? ch.rarity : R_QING, cl = r === R_TIAN ? '#b8860b' : r === R_HOU ? '#2a5a8a' : '#2e7d32'; h += `<div class="rank-item"><div class="rank-num">${i + 1}</div><div class="rank-name" style="color:${cl}">${n}</div><div class="rank-count">x${c}</div></div>` }); rank.innerHTML = h } }
 
         // Detail modal - shows artwork with background
-        function showCharDetail(name, rarity) { const modal = document.getElementById('modal'), content = document.getElementById('modalContent'); const count = state.collection[name] || 0; const char = ALL_CHARS.find(c => c.name === name); const art = char ? char.art : ''; const avatar = char ? char.avatar : ''; const tc = rarity === R_TIAN ? '#ffd700' : rarity === R_HOU ? '#6ab0ff' : '#81c784'; content.innerHTML = `<div class="modal-art-area"><img class="ma-bg" src="${BG_MAP[rarity]}"><img class="ma-art" src="${art}" onerror="this.src='${avatar}';this.onerror=null">${!count ? '<div class="ma-new">NEW</div>' : ''}</div><div class="modal-info"><div class="mi-name ${rarity}">${name}</div><div class="mi-count">已获得 ${count} 次</div><button class="modal-close" onclick="document.getElementById('modal').classList.remove('show')">关闭</button></div>`; modal.classList.add('show') }
+        function showCharDetail(name, rarity) {
+            const modal = document.getElementById('modal'), content = document.getElementById('modalContent');
+            const count = state.collection[name] || 0;
+            const char = ALL_CHARS.find(c => c.name === name);
+            const art = char ? char.art : '';
+            const avatar = char ? char.avatar : '';
+            const tc = rarity === R_TIAN ? '#ffd700' : rarity === R_HOU ? '#6ab0ff' : '#81c784';
+            const labels = ['建造', '农牧', '制作', '理财', '探险'];
+            let statsHtml = '';
+            if (STATS_MAP[name]) {
+                const s = STATS_MAP[name];
+                const bestStr = s.best.join(' / ');
+                let headerHtml = '', valuesHtml = '';
+                for (let i = 0; i < 5; i++) {
+                    headerHtml += `<span>${labels[i]}</span>`;
+                    const v = s.v[i];
+                    const rank = v > 650 ? 'rank-s' : v >= 500 ? 'rank-a' : v >= 300 ? 'rank-b' : v >= 100 ? 'rank-c' : 'rank-d';
+                    valuesHtml += `<span class="${rank}">${v}</span>`;
+                }
+                statsHtml = `<div class="mi-stats"><div class="mi-specialty">擅长：${bestStr}</div><div class="mi-stats-header">${headerHtml}</div><div class="mi-stats-values">${valuesHtml}</div></div>`;
+            }
+            content.innerHTML = `<div class="modal-art-area"><img class="ma-bg" src="${BG_MAP[rarity]}"><img class="ma-art" src="${art}" onerror="this.src='${avatar}';this.onerror=null">${!count ? '<div class="ma-new">NEW</div>' : ''}</div><div class="modal-info"><div class="mi-name ${rarity}">${name}</div>${statsHtml}<div class="mi-count">已获得 ${count} 次</div><button class="modal-close" onclick="document.getElementById('modal').classList.remove('show')">关闭</button></div>`;
+            modal.classList.add('show');
+        }
         function closeModal(e) { if (e.target === e.currentTarget) document.getElementById('modal').classList.remove('show') }
 
         function resetAll() { if (!confirm('确定要重置所有抽卡数据吗？')) return; state = defaultState(); saveState(); updateQuickStats(); renderCollection(); renderStats() }
