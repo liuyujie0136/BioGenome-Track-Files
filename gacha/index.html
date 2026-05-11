@@ -71,7 +71,7 @@
         }
 
         .header h1 {
-            font-size: 26px;
+            font-size: 28px;
             font-weight: 900;
             letter-spacing: 4px;
             color: var(--accent-gold);
@@ -101,7 +101,7 @@
             padding: 11px 4px;
             text-align: center;
             color: var(--text-light);
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 700;
             cursor: pointer;
             transition: .3s;
@@ -145,17 +145,22 @@
 
         .canvas-wrapper {
             position: relative;
-            border: 2px solid var(--border-light);
-            border-radius: 12px;
+            /* border: 2px solid var(--border-light); */
+            /* border-radius: 12px; */
             overflow: hidden;
-            background: #e3dddd;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, .08), inset 0 0 60px rgba(245, 240, 232, .5);
-            margin: 0 auto
+            /* background: #e3dddd; */
+            /* box-shadow: 0 4px 20px rgba(0, 0, 0, .08), inset 0 0 60px rgba(245, 240, 232, .5); */
+            margin: 0 auto;
+            background-image: url('images/bg_tian_blank.png');
+            background-size: 100% 100%;
+            background-position: center;
+            aspect-ratio: 1 / 1.25
         }
 
         #drawCanvas {
             display: block;
             width: 100%;
+            height: 100%;
             cursor: crosshair;
             touch-action: none
         }
@@ -163,11 +168,8 @@
         .canvas-overlay {
             position: absolute;
             inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             pointer-events: none;
-            opacity: .3;
+            opacity: .8;
             transition: opacity .3s
         }
 
@@ -176,10 +178,14 @@
         }
 
         .canvas-overlay span {
-            font-size: 48px;
+            position: absolute;
+            top: 36px;
+            right: 36px;
+            writing-mode: vertical-rl;
+            font-size: 36px;
             font-weight: 900;
-            color: #c0b090;
-            letter-spacing: 8px
+            color: #000000;
+            letter-spacing: 2px
         }
 
         .draw-controls {
@@ -619,7 +625,8 @@
         }
 
         .collection-header h2 {
-            font-size: 18px;
+            font-size: 24px;
+            font-weight: 700;
             color: var(--accent-red)
         }
 
@@ -1064,6 +1071,7 @@
             display: flex
         }
 
+        /* Pool name and search */
         .pool-search {
             max-width: 480px;
             margin: 0 auto 12px
@@ -1376,6 +1384,318 @@
         .mi-stats-values span.rank-d {
             background: #d3d3d3;
         }
+
+
+        /* Pool list */
+        .pool-list-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 255;
+            background: rgba(44, 24, 16, .92);
+            overflow-y: auto;
+            padding: 16px
+        }
+
+        .pool-list-overlay.show {
+            display: block
+        }
+
+        .pool-list-header {
+            max-width: 480px;
+            margin: 0 auto 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .pool-list-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent-gold);
+            letter-spacing: 2px
+        }
+
+        .pool-list-close {
+            padding: 6px 14px;
+            border: 1px solid rgba(201, 168, 76, .4);
+            background: transparent;
+            color: var(--accent-gold);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer
+        }
+
+        .pool-list-close:hover {
+            background: rgba(201, 168, 76, .15)
+        }
+
+        .pool-list-empty {
+            max-width: 480px;
+            margin: 40px auto;
+            text-align: center;
+            color: var(--text-light);
+            opacity: .5;
+            font-size: 14px
+        }
+
+        .pool-card {
+            max-width: 480px;
+            margin: 0 auto 10px;
+            background: rgba(255, 255, 255, .08);
+            border: 1px solid rgba(201, 168, 76, .3);
+            border-radius: 10px;
+            padding: 14px;
+            cursor: pointer;
+            transition: .2s
+        }
+
+        .pool-card:hover {
+            background: rgba(255, 255, 255, .15);
+            border-color: var(--accent-gold)
+        }
+
+        .pool-card-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent-gold);
+            margin-bottom: 4px
+        }
+
+        .pool-card-info {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-light);
+            margin-bottom: 4px
+        }
+
+        .pool-card-chars {
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(212, 196, 168, .6);
+            line-height: 1.5;
+            max-height: 60px;
+            overflow: hidden
+        }
+
+        .pool-card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px
+        }
+
+        .pool-card-actions button {
+            padding: 4px 12px;
+            border: 1px solid rgba(201, 168, 76, .3);
+            background: transparent;
+            color: var(--accent-gold);
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer
+        }
+
+        .pool-card-actions button:hover {
+            background: rgba(201, 168, 76, .15)
+        }
+
+        .pool-card-actions button.danger {
+            border-color: rgba(200, 60, 60, .4);
+            color: #e88
+        }
+
+        .pool-card-actions button.danger:hover {
+            background: rgba(200, 60, 60, .15)
+        }
+
+        .pool-card-active {
+            border-color: var(--accent-gold);
+            background: rgba(201, 168, 76, .12);
+            box-shadow: 0 0 10px rgba(201, 168, 76, .2)
+        }
+
+        /* Stats table overlay */
+        .stats-table-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 255;
+            background: rgba(44, 24, 16, .92);
+            overflow-y: auto;
+            padding: 16px
+        }
+
+        .stats-table-overlay.show {
+            display: block
+        }
+
+        .stats-table-header {
+            max-width: 480px;
+            margin: 0 auto 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px
+        }
+
+        .stats-table-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--accent-gold);
+            letter-spacing: 2px
+        }
+
+        .stats-table-controls {
+            max-width: 480px;
+            margin: 0 auto 10px;
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center
+        }
+
+        .stats-table-controls select,
+        .stats-table-controls input {
+            padding: 6px 10px;
+            border: 1px solid rgba(201, 168, 76, .3);
+            background: rgba(255, 255, 255, .1);
+            color: var(--text-light);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            outline: none
+        }
+
+        .stats-table-controls select:focus,
+        .stats-table-controls input:focus {
+            border-color: var(--accent-gold)
+        }
+
+        .stats-table-controls option {
+            background: #2c1810;
+            color: var(--text-light)
+        }
+
+        .stats-table-wrap {
+            max-width: 480px;
+            margin: 0 auto
+        }
+
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            font-weight: 500
+        }
+
+        .stats-table th {
+            position: sticky;
+            top: 0;
+            background: #2c1810;
+            color: var(--accent-gold);
+            padding: 8px 4px;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(201, 168, 76, .3);
+            cursor: pointer;
+            white-space: nowrap;
+            z-index: 1
+        }
+
+        .stats-table th:hover {
+            color: #fff
+        }
+
+        .stats-table td {
+            padding: 6px 4px;
+            border-bottom: 1px solid rgba(255, 255, 255, .05);
+            color: var(--text-light);
+            text-align: center;
+            white-space: nowrap;
+            font-weight: 500
+        }
+
+        .stats-table tr:hover td {
+            background: rgba(255, 255, 255, .05)
+        }
+
+        .stats-table .rarity-tian {
+            color: #ffd700;
+            font-weight: 600
+        }
+
+        .stats-table .rarity-hou {
+            color: #6ab0ff;
+            font-weight: 600
+        }
+
+        .stats-table .rarity-qing {
+            color: #81c784;
+            font-weight: 600
+        }
+
+        .stats-table .val-s {
+            color: #ffd700;
+            font-weight: 700
+        }
+
+        .stats-table .val-a {
+            color: #87ceeb;
+            font-weight: 600
+        }
+
+        .stats-table .val-b {
+            color: #90ee90;
+            font-weight: 500
+        }
+
+        .stats-table .val-c {
+            color: #ccc;
+            font-weight: 500
+        }
+
+        .stats-table .val-d {
+            color: #999;
+            font-weight: 500
+        }
+
+        .stats-table-close {
+            padding: 6px 14px;
+            border: 1px solid rgba(201, 168, 76, .4);
+            background: transparent;
+            color: var(--accent-gold);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer
+        }
+
+        .stats-table-close:hover {
+            background: rgba(201, 168, 76, .15)
+        }
+
+        /* Collection stats button */
+        .stats-table-btn {
+            padding: 5px 12px;
+            border: 1px solid var(--accent-gold);
+            background: transparent;
+            color: var(--accent-gold);
+            border-radius: 16px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: .2s
+        }
+
+        .stats-table-btn:hover {
+            background: rgba(201, 168, 76, .15)
+        }
     </style>
 </head>
 
@@ -1401,7 +1721,8 @@
                             <button class="mode-btn active" data-mode="1" onclick="setMode(1)">画一张</button>
                             <button class="mode-btn" data-mode="10" onclick="setMode(10)">画十张</button>
                         </div>
-                        <button class="pool-toggle" id="poolToggle" onclick="openPool()">角色池</button>
+                        <button class="pool-toggle" id="poolListBtn" onclick="openPoolList()">画池</button><button
+                            class="pool-toggle" id="poolToggle" onclick="openPool()">新建</button>
                     </div>
                     <div class="quick-stats" id="quickStats"></div>
                 </div>
@@ -1410,6 +1731,7 @@
                 <div class="collection-header">
                     <h2>角色图鉴</h2>
                     <div class="filter-buttons">
+                        <button class="stats-table-btn" onclick="openStatsTable()">数值</button>
                         <button class="filter-btn active" data-filter="all">全部</button>
                         <button class="filter-btn" data-filter="天">天级</button>
                         <button class="filter-btn" data-filter="侯">候级</button>
@@ -1451,19 +1773,62 @@
         <button class="all-results-close" onclick="closeAllResults()">确认</button>
     </div>
 
+    <!-- POOL LIST -->
+    <div class="pool-list-overlay" id="poolListOverlay">
+        <div class="pool-list-header">
+            <h2>画池</h2>
+            <button class="pool-list-close" onclick="closePoolList()">关闭</button>
+        </div>
+        <div id="poolListContent"></div>
+    </div>
+
     <!-- POOL -->
     <div class="pool-overlay" id="poolOverlay">
         <div class="pool-header">
-            <h2>自定义角色池</h2>
+            <h2>新建画池</h2>
             <div class="pool-actions">
                 <button class="pool-action-btn" onclick="clearPool()">清空</button>
                 <button class="pool-action-btn" onclick="selectAll()">全选</button>
-                <button class="pool-action-btn primary" onclick="closePool()">确认</button>
+                <button class="pool-action-btn" onclick="saveAndClosePool()">保存</button>
+                <button class="pool-action-btn primary" onclick="closePool()">关闭</button>
             </div>
         </div>
+        <div class="pool-search"><input type="text" id="poolNameInput" placeholder="输入画池名称..."></div>
         <div class="pool-search"><input type="text" id="poolSearch" placeholder="搜索角色名..." oninput="filterPool()"></div>
         <div class="pool-info" id="poolInfo"></div>
         <div class="pool-grid" id="poolGrid"></div>
+    </div>
+
+    <!-- STATS TABLE -->
+    <div class="stats-table-overlay" id="statsTableOverlay">
+        <div class="stats-table-header">
+            <h2>角色五围数据</h2>
+            <button class="stats-table-close" onclick="closeStatsTable()">关闭</button>
+        </div>
+        <div class="stats-table-controls">
+            <select id="stFilterRarity" onchange="renderStatsTable()">
+                <option value="all">全部稀有度</option>
+                <option value="天">天级</option>
+                <option value="侯">候级</option>
+                <option value="卿">卿级</option>
+            </select>
+            <select id="stFilterOwned" onchange="renderStatsTable()">
+                <option value="all">全部</option>
+                <option value="owned">已获得</option>
+                <option value="unowned">未获得</option>
+            </select>
+            <select id="stSortBy" onchange="renderStatsTable()">
+                <option value="name">按名称</option>
+                <option value="rarity">按稀有度</option>
+                <option value="build">按建造</option>
+                <option value="farm">按农牧</option>
+                <option value="craft">按制作</option>
+                <option value="mana">按理财</option>
+                <option value="explore">按探险</option>
+            </select>
+            <input type="text" id="stSearch" placeholder="搜索..." oninput="renderStatsTable()" style="width:80px">
+        </div>
+        <div class="stats-table-wrap" id="statsTableWrap"></div>
     </div>
 
     <!-- DETAIL MODAL -->
@@ -1480,17 +1845,20 @@
 
         let state = loadState(), drawMode = 1, hasDrawn = false, currentResults = [], revealIndex = -1;
         let customPool = new Set(), stopTimer = null, isGachaRunning = false;
+        let savedPools = loadSavedPools(), activePoolName = '';
 
         function defaultState() { return { collection: {}, totalDraws: 0, rarityStats: { [R_TIAN]: 0, [R_HOU]: 0, [R_QING]: 0 }, pity: 0 } }
         function loadState() { try { const s = localStorage.getItem('jn_gacha_v6'); if (s) { const d = defaultState(), p = JSON.parse(s); return { ...d, ...p, rarityStats: { ...d.rarityStats, ...(p.rarityStats || {}) } } } } catch (e) { } return defaultState() }
         function saveState() { localStorage.setItem('jn_gacha_v6', JSON.stringify(state)) }
+        function loadSavedPools() { try { const s = localStorage.getItem('jn_pools_v1'); return s ? JSON.parse(s) : {} } catch (e) { return {} } }
+        function saveSavedPools() { localStorage.setItem('jn_pools_v1', JSON.stringify(savedPools)) }
 
         // Canvas
         const canvas = document.getElementById('drawCanvas'), ctx = canvas.getContext('2d');
         let isDrawing = false, lastX = 0, lastY = 0;
-        function setupCanvas() { const r = canvas.parentElement.getBoundingClientRect(), d = window.devicePixelRatio || 1; canvas.width = r.width * d; canvas.height = 400 * d; canvas.style.height = '400px'; ctx.scale(d, d); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 10; ctx.strokeStyle = '#3d2b1f' }
+        function setupCanvas() { const r = canvas.parentElement.getBoundingClientRect(), d = window.devicePixelRatio || 1; const h = r.width * 3 / 2; canvas.width = r.width * d; canvas.height = h * d; canvas.style.height = h + 'px'; ctx.scale(d, d); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 10; ctx.strokeStyle = '#3d2b1f' }
         setupCanvas();
-        window.addEventListener('resize', () => { const d = canvas.toDataURL(); setupCanvas(); const i = new Image(); i.onload = () => ctx.drawImage(i, 0, 0, canvas.width / (window.devicePixelRatio || 1), 400); i.src = d });
+        window.addEventListener('resize', () => { const d = canvas.toDataURL(); setupCanvas(); const r = canvas.parentElement.getBoundingClientRect(); const h = r.width * 3 / 2; const i = new Image(); i.onload = () => ctx.drawImage(i, 0, 0, canvas.width / (window.devicePixelRatio || 1), h); i.src = d });
         function getPos(e) { const r = canvas.getBoundingClientRect(), t = e.touches ? e.touches[0] : e; return { x: t.clientX - r.left, y: t.clientY - r.top } }
         function startDraw(e) { e.preventDefault(); if (isGachaRunning) return; isDrawing = true; hasDrawn = true; document.getElementById('canvasOverlay').classList.add('hidden'); clearTimeout(stopTimer); const p = getPos(e); lastX = p.x; lastY = p.y }
         function doDraw(e) { if (!isDrawing) return; e.preventDefault(); clearTimeout(stopTimer); const p = getPos(e); ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(p.x, p.y); ctx.stroke(); lastX = p.x; lastY = p.y }
@@ -1499,7 +1867,7 @@
         canvas.addEventListener('mouseup', stopDraw); canvas.addEventListener('mouseleave', stopDraw);
         canvas.addEventListener('touchstart', startDraw, { passive: false }); canvas.addEventListener('touchmove', doDraw, { passive: false });
         canvas.addEventListener('touchend', stopDraw, { passive: false });
-        function clearCanvas() { const d = window.devicePixelRatio || 1; ctx.clearRect(0, 0, canvas.width / d, 400); hasDrawn = false; clearTimeout(stopTimer); document.getElementById('canvasOverlay').classList.remove('hidden') }
+        function clearCanvas() { const r = canvas.parentElement.getBoundingClientRect(), h = r.width * 3 / 2; ctx.clearRect(0, 0, r.width, h); hasDrawn = false; clearTimeout(stopTimer); document.getElementById('canvasOverlay').classList.remove('hidden') }
         function setMode(m) { drawMode = m; document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.mode) === m)) }
 
         // Gacha
@@ -1541,14 +1909,129 @@
         function skipAll() { document.getElementById('revealOverlay').classList.remove('show'); showAllResults(currentResults); isGachaRunning = false }
 
         // All results
-        function showAllResults(results) { const grid = document.getElementById('allResultsGrid'); document.getElementById('allResultsTitle').textContent = `获得 ${results.length} 位角色`; let h = ''; results.forEach((r, i) => { h += `<div class="mini-card ${r.rarity}" style="animation-delay:${i * .05}s" onclick="showCharDetail('${r.name}','${r.rarity}')">${r.isNew ? '<div class="mc-new">NEW</div>' : ''}<img class="mc-bg" src="${BG_MAP[r.rarity]}"><img class="mc-art" src="${r.art}" onerror="this.src='${r.avatar}';this.onerror=null"><div class="mc-name">${r.name}</div></div>` }); grid.innerHTML = h; document.getElementById('allResultsOverlay').classList.add('show') }
+        function showAllResults(results) { const grid = document.getElementById('allResultsGrid'); const newCount = results.filter(r => r.isNew).length; document.getElementById('allResultsTitle').textContent = `获得 ${newCount} 位新角色`; let h = ''; results.forEach((r, i) => { h += `<div class="mini-card ${r.rarity}" style="animation-delay:${i * .05}s" onclick="showCharDetail('${r.name}','${r.rarity}')">${r.isNew ? '<div class="mc-new">NEW</div>' : ''}<img class="mc-bg" src="${BG_MAP[r.rarity]}"><img class="mc-art" src="${r.art}" onerror="this.src='${r.avatar}';this.onerror=null"><div class="mc-name">${r.name}</div></div>` }); grid.innerHTML = h; document.getElementById('allResultsOverlay').classList.add('show') }
         function closeAllResults() { document.getElementById('allResultsOverlay').classList.remove('show') }
 
         // Custom pool
-        function openPool() { document.getElementById('poolOverlay').classList.add('show'); renderPoolGrid() }
-        function closePool() { document.getElementById('poolOverlay').classList.remove('show'); updatePoolToggle() }
-        function updatePoolToggle() { const b = document.getElementById('poolToggle'); b.classList.toggle('active', customPool.size > 0); b.textContent = customPool.size > 0 ? `角色池(${customPool.size})` : '角色池' }
-        function renderPoolGrid() { const grid = document.getElementById('poolGrid'), search = (document.getElementById('poolSearch').value || '').toLowerCase(); let filtered = ALL_CHARS; if (search) filtered = ALL_CHARS.filter(c => c.name.toLowerCase().includes(search)); filtered.sort((a, b) => { const o = { [R_TIAN]: 0, [R_HOU]: 1, [R_QING]: 2 }; return o[a.rarity] - o[b.rarity] }); let h = ''; filtered.forEach(c => { const sel = customPool.has(c.name); h += `<div class="pool-item ${c.rarity} ${sel ? 'selected' : ''}" onclick="togglePoolItem('${c.name}')"><div class="check-mark">\u2713</div><img class="pi-avatar" src="${c.avatar}" onerror="this.style.display='none'"><img class="pi-frame" src="${FRAME_MAP[c.rarity]}"><div class="pi-name">${c.name}</div></div>` }); grid.innerHTML = h; document.getElementById('poolInfo').textContent = `已选 ${customPool.size} / ${ALL_CHARS.length} 个角色（未选择时使用全部角色）` }
+        function openPool() { document.getElementById('poolNameInput').value = activePoolName || ''; document.getElementById('poolOverlay').classList.add('show'); renderPoolGrid() }
+        function closePool() { document.getElementById('poolOverlay').classList.remove('show') }
+
+        // Pool list
+        function openPoolList() { document.getElementById('poolListOverlay').classList.add('show'); renderPoolList() }
+        function closePoolList() { document.getElementById('poolListOverlay').classList.remove('show') }
+        function renderPoolList() {
+            const el = document.getElementById('poolListContent');
+            const names = Object.keys(savedPools);
+            if (!names.length) { el.innerHTML = '<div class="pool-list-empty">暂无画池，点击"新建"创建</div>'; return }
+            let h = '';
+            names.forEach(name => {
+                const chars = savedPools[name];
+                const tianC = chars.filter(n => ALL_CHARS.find(c => c.name === n && c.rarity === R_TIAN)).length;
+                const houC = chars.filter(n => ALL_CHARS.find(c => c.name === n && c.rarity === R_HOU)).length;
+                const qingC = chars.filter(n => ALL_CHARS.find(c => c.name === n && c.rarity === R_QING)).length;
+                const isActive = activePoolName === name;
+                const safeName = name.replace(/'/g, "\\'");
+                h += `<div class="pool-card ${isActive ? 'pool-card-active' : ''}" onclick="activatePool('${safeName}')">
+                    <div class="pool-card-name">${isActive ? '✓ ' : ''}${name}</div>
+                    <div class="pool-card-info">天${tianC} / 候${houC} / 卿${qingC} / 共${chars.length}人</div>
+                    <div class="pool-card-chars">${chars.join('、')}</div>
+                    <div class="pool-card-actions" onclick="event.stopPropagation()">
+                        <button onclick="activatePool('${safeName}')">使用</button>
+                        <button class="danger" onclick="deletePool('${safeName}')">删除</button>
+                    </div>
+                </div>`;
+            });
+            el.innerHTML = h;
+        }
+        function activatePool(name) {
+            const chars = savedPools[name];
+            customPool = new Set(chars);
+            activePoolName = name;
+            updatePoolToggle();
+            closePoolList();
+        }
+        function deletePool(name) {
+            if (!confirm('确定删除画池"' + name + '"吗？')) return;
+            delete savedPools[name];
+            saveSavedPools();
+            if (activePoolName === name) { customPool.clear(); activePoolName = ''; updatePoolToggle() }
+            renderPoolList();
+        }
+
+        // Pool save
+        function saveAndClosePool() {
+            if (customPool.size === 0) { alert('请至少选择一个角色'); return }
+            const nameInput = document.getElementById('poolNameInput');
+            let name = nameInput.value.trim();
+            if (!name) name = '画池' + (Object.keys(savedPools).length + 1);
+            if (savedPools[name] && !confirm('画池"' + name + '"已存在，是否覆盖？')) return;
+            savedPools[name] = Array.from(customPool);
+            saveSavedPools();
+            activePoolName = name;
+            updatePoolToggle();
+            document.getElementById('poolOverlay').classList.remove('show');
+            nameInput.value = '';
+        }
+
+        // Stats table
+        function openStatsTable() { document.getElementById('statsTableOverlay').classList.add('show'); renderStatsTable() }
+        function closeStatsTable() { document.getElementById('statsTableOverlay').classList.remove('show') }
+        function renderStatsTable() {
+            const rarity = document.getElementById('stFilterRarity').value;
+            const owned = document.getElementById('stFilterOwned').value;
+            const sortBy = document.getElementById('stSortBy').value;
+            const search = (document.getElementById('stSearch').value || '').toLowerCase();
+            const labels = ['建造', '农牧', '制作', '理财', '探险'];
+            let chars = ALL_CHARS.filter(c => {
+                if (rarity !== 'all' && c.rarity !== rarity) return false;
+                if (owned === 'owned' && !state.collection[c.name]) return false;
+                if (owned === 'unowned' && state.collection[c.name]) return false;
+                if (search && !c.name.toLowerCase().includes(search)) return false;
+                return true;
+            });
+            const sortKeyMap = { name: 'name', rarity: 'rarity', build: 0, farm: 1, craft: 2, mana: 3, explore: 4 };
+            chars.sort((a, b) => {
+                const sk = sortKeyMap[sortBy];
+                if (sk === 'name') return a.name.localeCompare(b.name, 'zh');
+                if (sk === 'rarity') { const o = { [R_TIAN]: 0, [R_HOU]: 1, [R_QING]: 2 }; return o[a.rarity] - o[b.rarity] }
+                const va = STATS_MAP[a.name] ? STATS_MAP[a.name].v[sk] : 0;
+                const vb = STATS_MAP[b.name] ? STATS_MAP[b.name].v[sk] : 0;
+                return vb - va;
+            });
+            let h = '<table class="stats-table"><thead><tr><th>角色名</th><th>级</th>';
+            labels.forEach(l => h += '<th>' + l + '</th>');
+            h += '<th>擅长</th></tr></thead><tbody>';
+            chars.forEach(c => {
+                const s = STATS_MAP[c.name];
+                const rc = c.rarity === R_TIAN ? 'rarity-tian' : c.rarity === R_HOU ? 'rarity-hou' : 'rarity-qing';
+                h += '<tr><td class="' + rc + '" style="text-align:center">' + c.name + '</td><td class="' + rc + '">' + c.rarity + '</td>';
+                if (s) {
+                    s.v.forEach(v => {
+                        const cls = v > 650 ? 'val-s' : v >= 500 ? 'val-a' : v >= 300 ? 'val-b' : v >= 100 ? 'val-c' : 'val-d';
+                        h += '<td class="' + cls + '">' + v + '</td>';
+                    });
+                    h += '<td style="text-align:center;font-size:11px;font-weight:600">' + s.best.join('/') + '</td>';
+                } else {
+                    for (let i = 0; i < 5; i++) h += '<td>-</td>';
+                    h += '<td>-</td>';
+                }
+                h += '</tr>';
+            });
+            h += '</tbody></table>';
+            document.getElementById('statsTableWrap').innerHTML = h;
+        }
+
+        function updatePoolToggle() {
+            const b = document.getElementById('poolToggle');
+            const lb = document.getElementById('poolListBtn');
+            b.classList.toggle('active', customPool.size > 0);
+            b.textContent = customPool.size > 0 ? `新建(${customPool.size})` : '新建';
+            if (lb) {
+                lb.classList.toggle('active', activePoolName !== '');
+                lb.textContent = activePoolName || '画池';
+            }
+        }
+        function renderPoolGrid() { const grid = document.getElementById('poolGrid'), search = (document.getElementById('poolSearch').value || '').toLowerCase(); let filtered = ALL_CHARS; if (search) filtered = ALL_CHARS.filter(c => c.name.toLowerCase().includes(search)); filtered.sort((a, b) => { const o = { [R_TIAN]: 0, [R_HOU]: 1, [R_QING]: 2 }; return o[a.rarity] - o[b.rarity] }); let h = ''; filtered.forEach(c => { const sel = customPool.has(c.name); h += `<div class="pool-item ${c.rarity} ${sel ? 'selected' : ''}" onclick="togglePoolItem('${c.name}')"><div class="check-mark">\u2713</div><img class="pi-avatar" src="${c.avatar}" onerror="this.style.display='none'"><img class="pi-frame" src="${FRAME_MAP[c.rarity]}"><div class="pi-name">${c.name}</div></div>` }); grid.innerHTML = h; document.getElementById('poolInfo').textContent = `已选 ${customPool.size} / ${ALL_CHARS.length} 个角色` }
         function togglePoolItem(name) { if (customPool.has(name)) customPool.delete(name); else customPool.add(name); renderPoolGrid() }
         function clearPool() { customPool.clear(); renderPoolGrid() }
         function selectAll() { ALL_CHARS.forEach(c => customPool.add(c.name)); renderPoolGrid() }
@@ -1586,7 +2069,7 @@
                 }
                 statsHtml = `<div class="mi-stats"><div class="mi-specialty">擅长：${bestStr}</div><div class="mi-stats-header">${headerHtml}</div><div class="mi-stats-values">${valuesHtml}</div></div>`;
             }
-            content.innerHTML = `<div class="modal-art-area"><img class="ma-bg" src="${BG_MAP[rarity]}"><img class="ma-art" src="${art}" onerror="this.src='${avatar}';this.onerror=null">${!count ? '<div class="ma-new">NEW</div>' : ''}</div><div class="modal-info"><div class="mi-name ${rarity}">${name}</div>${statsHtml}<div class="mi-count">已获得 ${count} 次</div><button class="modal-close" onclick="document.getElementById('modal').classList.remove('show')">关闭</button></div>`;
+            const owned = count > 0; const grayStyle = owned ? '' : 'filter:grayscale(1) opacity(0.5);'; content.innerHTML = `<div class="modal-art-area"><img class="ma-bg" src="${BG_MAP[rarity]}" style="${grayStyle}"><img class="ma-art" src="${art}" onerror="this.src='${avatar}';this.onerror=null" style="${grayStyle}">${owned ? '' : ''}</div><div class="modal-info"><div class="mi-name ${rarity}">${name}</div>${statsHtml}<div class="mi-count">${owned ? '已获得 ' + count + ' 次' : '尚未获得'}</div><button class="modal-close" onclick="document.getElementById('modal').classList.remove('show')">关闭</button></div>`;
             modal.classList.add('show');
         }
         function closeModal(e) { if (e.target === e.currentTarget) document.getElementById('modal').classList.remove('show') }
@@ -1595,7 +2078,7 @@
 
         document.querySelectorAll('.nav-tab').forEach(tab => { tab.addEventListener('click', () => { document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); tab.classList.add('active'); document.getElementById('tab-' + tab.dataset.tab).classList.add('active'); if (tab.dataset.tab === 'collection') renderCollection(); if (tab.dataset.tab === 'stats') renderStats() }) });
         document.querySelectorAll('.filter-btn').forEach(btn => { btn.addEventListener('click', () => { document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); collectionFilter = btn.dataset.filter; renderCollection() }) });
-        document.addEventListener('keydown', e => { if (e.key === 'Escape') { ['modal', 'allResultsOverlay', 'revealOverlay', 'poolOverlay'].forEach(id => document.getElementById(id).classList.remove('show')) } });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') { ['modal', 'allResultsOverlay', 'revealOverlay', 'poolOverlay', 'poolListOverlay', 'statsTableOverlay'].forEach(id => document.getElementById(id).classList.remove('show')) } });
 
         updateQuickStats();
     </script>
