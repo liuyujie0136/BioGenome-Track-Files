@@ -2,21 +2,20 @@
 # -*- coding: utf-8 -*-
 """
 Jiangnan Gacha Simulator - Add new characters
-
 使用方法:
-  python3 add_characters.py <新角色数据文件.txt> <index.html路径>
-
+  python add_characters.py <index.html路径> <新角色数据文件.txt>
 数据文件格式 (制表符或空格分隔):
   编号  稀有度  角色名  建造  农牧  制作  理财  探险
-
 示例:
-  240  天  新角色A  600  400  780  300  500
-  241  侯  新角色B  300  500  200  600  400
-
+  A01  天  新角色A  600  400  780  300  500
+  A02  侯  新角色B  300  500  200  600  400
+  B01  卿  新角色C  400  300  500  700  200
 注意:
+  - 编号由你手动指定（如A01、B02），脚本不做任何修改
   - 头像文件需手动放入 images/ 目录，命名为 "编号_角色名.png"
   - 立绘文件需手动放入 art/ 目录，命名为 "编号_角色名.png"
   - 脚本会自动备份原 index.html 为 index.html.bak
+  - 新角色将按文件顺序插入到 ALL_CHARS、STATS_MAP 最头部
 """
 
 import sys
@@ -27,7 +26,7 @@ import shutil
 
 
 def parse_input_file(filepath):
-    """解析输入文件，返回新角色列表"""
+    """解析输入文件，直接读取你指定的完整编号"""
     characters = []
     with open(filepath, "r", encoding="utf-8") as f:
         for line_num, line in enumerate(f, 1):
@@ -65,115 +64,87 @@ def compute_specialty(stats):
     return best
 
 
-def get_rank_class(value):
-    """根据数值返回评级CSS类名"""
-    if value > 650:
-        return "rank-s"
-    elif value >= 500:
-        return "rank-a"
-    elif value >= 300:
-        return "rank-b"
-    elif value >= 100:
-        return "rank-c"
-    else:
-        return "rank-d"
-
-
 def update_html(html_path, new_chars):
-    """更新HTML文件，添加新角色数据"""
+    """更新HTML：新角色按顺序插入到ALL_CHARS、STATS_MAP头部"""
     with open(html_path, "r", encoding="utf-8") as f:
         html = f.read()
 
-    # 1. 更新 ALL_CHARS 数组
+    # 1. 解析 ALL_CHARS 数组
     all_chars_match = re.search(r"const ALL_CHARS\s*=\s*(\[.*?\]);", html, re.DOTALL)
     if not all_chars_match:
         print("错误: 无法找到 ALL_CHARS 定义")
         return False
-
     try:
         all_chars = json.loads(all_chars_match.group(1))
     except json.JSONDecodeError:
         print("错误: ALL_CHARS JSON 解析失败")
         return False
 
-    # 找到当前最大编号
-    max_idx = -1
-    for c in all_chars:
-        # 从 art 路径提取编号: art/XXX_名.png
-        m = re.match(r"art/(\d+)_", c.get("art", ""))
-        if m:
-            max_idx = max(max_idx, int(m.group(1)))
-
-    # 添加新角色
+    # 2. 按你文件的顺序，插入到 ALL_CHARS 头部
     added = 0
-    for char in new_chars:
-        # 检查是否已存在
-        existing = [c for c in all_chars if c["name"] == char["name"]]
-        if existing:
+    # 逆序遍历保证最终顺序和你文件一致
+    for char in reversed(new_chars):
+        # 跳过重名角色
+        if any(c["name"] == char["name"] for c in all_chars):
             print(f"  跳过已存在的角色: {char['name']}")
             continue
-
-        idx = max_idx + 1
-        max_idx = idx
-
+        # 直接使用你提供的编号生成图片路径
         new_entry = {
             "name": char["name"],
             "rarity": char["rarity"],
-            "art": f"art/{idx:03d}_{char['name']}.png",
-            "avatar": f"images/{idx:03d}_{char['name']}.png",
+            "art": f"art/{char['id']}_{char['name']}.png",
+            "avatar": f"images/{char['id']}_{char['name']}.png",
         }
-        all_chars.append(new_entry)
+        all_chars.insert(0, new_entry)  # 插入头部
         added += 1
-        print(f"  添加: {char['name']} ({char['rarity']}级, 编号{idx:03d})")
+        print(f"  添加: {char['name']} ({char['rarity']}, 编号{char['id']})")
 
     if added == 0:
         print("没有新角色需要添加")
         return False
 
-    # 替换 ALL_CHARS
-    new_json = json.dumps(all_chars, ensure_ascii=False)
+    # 回写 ALL_CHARS
+    new_all_chars_json = json.dumps(all_chars, ensure_ascii=False)
     html = (
         html[: all_chars_match.start()]
-        + f"const ALL_CHARS = {new_json};"
+        + f"const ALL_CHARS = {new_all_chars_json};"
         + html[all_chars_match.end():]
     )
 
-    # 2. 更新 STATS_MAP
-    stats_map_match = re.search(
-        r"const STATS_MAP\s*=\s*\{([^}]*(?:\{[^}]*\}[^}]*)*)\};", html, re.DOTALL
-    )
+    # 3. 更新 STATS_MAP：新数据放在头部
+    stats_map_match = re.search(r"const STATS_MAP\s*=\s*\{.*?\};", html, re.DOTALL)
     if not stats_map_match:
         print("错误: 无法找到 STATS_MAP 定义")
         return False
 
-    # 解析现有 STATS_MAP
-    stats_content = stats_map_match.group(1)
-    # 使用 eval-safe 方式解析
-    stats_map_str = "{" + stats_content + "}"
+    # 解析原有数据
+    stats_map_str = (
+        stats_map_match.group(0).replace("const STATS_MAP =", "").rstrip(";")
+    )
     try:
-        # 替换简写为标准JSON
-        stats_map_str_fixed = stats_map_str.replace("'", '"')
-        stats_map = json.loads(stats_map_str_fixed)
+        stats_map = json.loads(stats_map_str.replace("'", '"'))
     except json.JSONDecodeError:
-        # 尝试从HTML重新构建
         stats_map = {}
 
-    # 添加新角色五围数据
+    # 新角色统计数据（放头部）
+    new_stats = []
     for char in new_chars:
         if char["name"] in stats_map:
             print(f"  跳过已存在的五围数据: {char['name']}")
             continue
-        best = compute_specialty(char["stats"])
-        stats_map[char["name"]] = {"v": char["stats"], "best": best}
+        v_str = ",".join(map(str, char["stats"]))
+        best_str = '","'.join(compute_specialty(char["stats"]))
+        new_stats.append(f'"{char["name"]}":{{"v":[{v_str}],"best":["{best_str}"]}}')
 
-    # 重建 STATS_MAP 字符串
-    entries = []
+    # 原有统计数据（放尾部）
+    old_stats = []
     for name, data in stats_map.items():
-        v_str = ",".join(str(x) for x in data["v"])
+        v_str = ",".join(map(str, data["v"]))
         best_str = '","'.join(data["best"])
-        entries.append(f'"{name}":{{"v":[{v_str}],"best":["{best_str}"]}}')
+        old_stats.append(f'"{name}":{{"v":[{v_str}],"best":["{best_str}"]}}')
 
-    new_stats_map = "const STATS_MAP = {" + ",".join(entries) + "};"
+    # 合并：新数据在前，旧数据在后
+    new_stats_map = f"const STATS_MAP = {{ {','.join(new_stats + old_stats)} }};"
     html = (
         html[: stats_map_match.start()] + new_stats_map + html[stats_map_match.end():]
     )
@@ -182,13 +153,13 @@ def update_html(html_path, new_chars):
     with open(html_path, "w", encoding="utf-8") as f:
         f.write(html)
 
-    print(f"\n成功添加 {added} 个新角色!")
-    print("请确保以下文件已放入对应目录:")
+    # 提示文件放置
+    print(f"\n成功添加 {added} 个新角色！")
+    print("请放入对应图片文件：")
     for char in new_chars:
-        idx_str = f"{max_idx:03d}"
-        print(f"  images/{idx_str}_{char['name']}.png (头像)")
-        print(f"  art/{idx_str}_{char['name']}.png (立绘)")
-
+        if char["name"] not in stats_map:
+            print(f"  images/{char['id']}_{char['name']}.png")
+            print(f"  art/{char['id']}_{char['name']}.png")
     return True
 
 
@@ -197,39 +168,33 @@ if __name__ == "__main__":
         print(__doc__)
         sys.exit(1)
 
-    input_file = sys.argv[1]
-    html_file = sys.argv[2]
+    html_file = sys.argv[1]
+    input_file = sys.argv[2]
 
-    # 检查文件
+    # 校验文件
     if not os.path.exists(input_file):
-        print(f"错误: 输入文件不存在: {input_file}")
+        print(f"错误：输入文件不存在 {input_file}")
         sys.exit(1)
     if not os.path.exists(html_file):
-        print(f"错误: HTML文件不存在: {html_file}")
+        print(f"错误：HTML文件不存在 {html_file}")
         sys.exit(1)
 
     # 备份
-    backup_path = html_file + ".bak"
-    if not os.path.exists(backup_path):
-        shutil.copy2(html_file, backup_path)
-        print(f"已备份: {backup_path}")
-    else:
-        print(f"备份已存在: {backup_path}")
+    bak_path = html_file + ".bak"
+    if not os.path.exists(bak_path):
+        shutil.copy2(html_file, bak_path)
+        print(f"已备份：{bak_path}")
 
-    # 解析输入
-    print(f"\n解析输入文件: {input_file}")
+    # 执行
+    print(f"\n解析文件：{input_file}")
     new_chars = parse_input_file(input_file)
     if not new_chars:
-        print("没有找到有效的新角色数据")
+        print("无有效角色数据")
         sys.exit(1)
-    print(f"找到 {len(new_chars)} 个新角色")
+    print(f"找到 {len(new_chars)} 个角色")
 
-    # 更新HTML
-    print(f"\n更新HTML: {html_file}")
-    success = update_html(html_file, new_chars)
-    if success:
-        print("\n完成! 请检查以下事项:")
-        print("  1. 确认头像和立绘文件已放入 images/ 和 art/ 目录")
-        print("  2. 在浏览器中刷新页面验证新角色显示正常")
+    print(f"\n更新HTML：{html_file}")
+    if update_html(html_file, new_chars):
+        print("\n完成！新角色已插入列表头部~")
     else:
-        print("\n未做修改")
+        print("\n未修改任何内容")
