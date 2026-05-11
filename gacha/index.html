@@ -1687,7 +1687,7 @@
             color: var(--accent-gold);
             border-radius: 16px;
             font-family: inherit;
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             transition: .2s
@@ -1729,9 +1729,10 @@
             </div>
             <div class="tab-content" id="tab-collection">
                 <div class="collection-header">
-                    <h2>角色图鉴</h2>
                     <div class="filter-buttons">
-                        <button class="stats-table-btn" onclick="openStatsTable()">数值</button>
+                        <button class="stats-table-btn" onclick="openStatsTable()">角色数值</button>
+                    </div>
+                    <div class="filter-buttons">
                         <button class="filter-btn active" data-filter="all">全部</button>
                         <button class="filter-btn" data-filter="天">天级</button>
                         <button class="filter-btn" data-filter="侯">候级</button>
@@ -1750,7 +1751,8 @@
                 </div>
             </div>
         </div>
-        <div class="footer">角色数据来源于 bilibili wiki · 仅供娱乐</div>
+        <div class="footer">角色数据来源于 <a href="https://wiki.biligame.com/jiangnan/" target=_blank"
+                style="color: #76b5e2; text-decoration: none;">Bilibili Wiki</a> · 仅供娱乐</div>
     </div>
 
     <!-- REVEAL -->
@@ -1785,7 +1787,7 @@
     <!-- POOL -->
     <div class="pool-overlay" id="poolOverlay">
         <div class="pool-header">
-            <h2>新建画池</h2>
+            <h2>新建</h2>
             <div class="pool-actions">
                 <button class="pool-action-btn" onclick="clearPool()">清空</button>
                 <button class="pool-action-btn" onclick="selectAll()">全选</button>
