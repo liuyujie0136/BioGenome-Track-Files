@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Jiangnan Gacha Simulator - Add new characters (with auto image download)
+Jiangnan Gacha Simulator - Add new characters (with auto image & talent download)
 使用方法:
   python add_characters.py <index.html路径> <新角色数据文件.txt> [输出目录]
 数据文件格式 (制表符或空格分隔):
@@ -12,12 +12,13 @@ Jiangnan Gacha Simulator - Add new characters (with auto image download)
   B01  卿  新角色C  400  300  500  700  200
 注意:
   - 编号由你手动指定（如A01、B02），脚本不做任何修改
-  - 脚本会自动从bilibili wiki抓取头像和立绘，按"编号_角色名.png"命名
+  - 脚本会自动从bilibili wiki抓取头像、立绘和天赋，按"编号_角色名.png"命名图片
   - 头像保存到 NEW/image/ 目录（90x90像素）
   - 立绘保存到 NEW/art/ 目录（宽度400像素，等比缩放）
+  - 天赋数据自动写入HTML中的TALENTS_MAP
   - 可通过第三个参数指定输出目录（默认为脚本所在目录下的 NEW/）
   - 脚本会自动备份原 index.html 为 index.html.bak
-  - 新角色将按文件顺序插入到 ALL_CHARS、STATS_MAP 最头部
+  - 新角色将按文件顺序插入到 ALL_CHARS、STATS_MAP、TALENTS_MAP 最头部
 依赖:
   pip install requests Pillow beautifulsoup4 lxml
 """
@@ -33,6 +34,7 @@ import urllib.parse
 import requests
 from PIL import Image
 from io import BytesIO
+from bs4 import BeautifulSoup
 
 
 # ============================================================
@@ -112,7 +114,6 @@ def fetch_image_urls_from_api(char_name):
     返回: {"avatar": url_or_None, "art": url_or_None}
     """
     result = {"avatar": None, "art": None}
-    # MediaWiki 会自动将下划线转为空格，所以用下划线传入
     file_titles = f"File:头像_{char_name}.png|File:立绘_{char_name}.png"
     params = {
         "action": "query",
@@ -160,8 +161,6 @@ def fetch_image_urls_from_page(char_name):
         m = re.search(lihui_pattern, html)
         if m:
             thumb_url = m.group(1)
-            # 将缩略图URL转为原图URL
-            # /thumb/a/ab/hash/200px-立绘_角色名.png -> /a/ab/hash.png
             full_url = re.sub(
                 r"/thumb/((?:[^/]+/){2}[^/]+)/\d+px-[^/]+$",
                 r"/\1",
@@ -180,10 +179,7 @@ def fetch_image_urls_from_page(char_name):
         m = re.search(avatar_pattern, html)
         if m:
             thumb_url = m.group(1)
-            # 头像使用90px缩略图即可（与现有头像尺寸一致）
-            # 如果URL是缩略图，尝试获取90px版本
             if "/thumb/" in thumb_url:
-                # 替换尺寸前缀为90px
                 url_90 = re.sub(
                     r"/thumb/((?:[^/]+/){2}[^/]+)/\d+px-",
                     r"/thumb/\1/90px-",
@@ -203,17 +199,14 @@ def fetch_image_urls(char_name, json_cache=None):
     获取角色的头像和立绘URL。
     优先级：本地JSON缓存 > MediaWiki API > 页面HTML抓取
     """
-    # 1. 尝试从本地JSON缓存获取
     if json_cache and char_name in json_cache:
         entry = json_cache[char_name]
         return {"avatar": entry.get("avatar"), "art": entry.get("art")}
 
-    # 2. 尝试 MediaWiki API
     result = fetch_image_urls_from_api(char_name)
     if result["avatar"] and result["art"]:
         return result
 
-    # 3. API未完全获取，尝试页面抓取补充
     page_result = fetch_image_urls_from_page(char_name)
     if not result["avatar"]:
         result["avatar"] = page_result["avatar"]
@@ -221,6 +214,76 @@ def fetch_image_urls(char_name, json_cache=None):
         result["art"] = page_result["art"]
 
     return result
+
+
+# ============================================================
+#  从 bilibili wiki 抓取天赋数据
+# ============================================================
+def fetch_talent_from_page(char_name):
+    """
+    从角色wiki页面抓取天赋名称和最低星级天赋描述。
+
+    页面结构：
+      - 天赋名称在 <th>天赋：XXX</th> 中
+      - 天赋描述在 tf-star0 ~ tf-star4 的 div 中
+      - 最低星级天赋 = 第一个有文字内容的 tf-star div
+
+    返回: {"name": 天赋名, "desc": 描述} 或 None
+    """
+    page_url = WIKI_BASE + urllib.parse.quote(char_name)
+    try:
+        resp = requests.get(page_url, headers=HEADERS, timeout=20)
+        resp.raise_for_status()
+        html = resp.text
+
+        # 提取天赋名称：天赋：XXX 或 天赋:XXX
+        talent_name_match = re.search(r"天赋[：:]([^<\n]+)", html)
+        tname = talent_name_match.group(1).strip() if talent_name_match else ""
+
+        if not tname:
+            print(f"    未找到天赋名称: {char_name}")
+            return None
+
+        # 提取最低星级天赋描述
+        soup = BeautifulSoup(html, "html.parser")
+        tf_detail = soup.find("div", id="tf-detail")
+        first_desc = ""
+        if tf_detail:
+            for s in range(5):
+                star_div = tf_detail.find("div", id=f"tf-star{s}")
+                if star_div:
+                    desc = star_div.get_text(strip=True)
+                    if desc:
+                        first_desc = desc
+                        break
+
+        if not first_desc:
+            print(f"    未找到天赋描述: {char_name} (天赋名={tname})")
+            return {"name": tname, "desc": ""}
+
+        return {"name": tname, "desc": first_desc}
+
+    except requests.exceptions.HTTPError as e:
+        print(f"    天赋页面请求失败 ({char_name}): {e}")
+        return None
+    except Exception as e:
+        print(f"    天赋抓取异常 ({char_name}): {e}")
+        return None
+
+
+def fetch_talent(char_name, json_cache=None):
+    """
+    获取角色天赋数据。
+    优先级：本地JSON缓存 > wiki页面抓取
+
+    返回: {"name": 天赋名, "desc": 描述} 或 None
+    """
+    # 1. 尝试从本地JSON缓存获取
+    if json_cache and char_name in json_cache:
+        return json_cache[char_name]
+
+    # 2. 从wiki页面抓取
+    return fetch_talent_from_page(char_name)
 
 
 # ============================================================
@@ -265,7 +328,6 @@ def fetch_and_save_images(new_chars, output_base):
       art/     <- 立绘 (编号_角色名.png)
     返回: 成功保存的角色列表
     """
-    # 创建输出目录
     avatar_dir = os.path.join(output_base, "image")
     art_dir = os.path.join(output_base, "art")
     os.makedirs(avatar_dir, exist_ok=True)
@@ -352,14 +414,43 @@ def fetch_and_save_images(new_chars, output_base):
 
 
 # ============================================================
+#  天赋数据抓取（批量）
+# ============================================================
+def fetch_talents(new_chars, json_cache=None):
+    """
+    为所有新角色抓取天赋数据。
+    返回: {角色名: {"name": 天赋名, "desc": 描述}, ...}
+    """
+    talents = {}
+    for i, char in enumerate(new_chars):
+        name = char["name"]
+        print(f"\n  [{i+1}/{len(new_chars)}] {name} - 抓取天赋")
+
+        talent = fetch_talent(name, json_cache)
+        if talent:
+            talents[name] = talent
+            print(f"    天赋: {talent['name']}")
+            if talent["desc"]:
+                print(f"    描述: {talent['desc'][:60]}...")
+        else:
+            print("    天赋获取失败，将在HTML中留空")
+
+        # 请求间隔
+        if i < len(new_chars) - 1:
+            time.sleep(REQUEST_DELAY)
+
+    return talents
+
+
+# ============================================================
 #  HTML 更新
 # ============================================================
-def update_html(html_path, new_chars):
-    """更新HTML：新角色按顺序插入到ALL_CHARS、STATS_MAP头部"""
+def update_html(html_path, new_chars, new_talents=None):
+    """更新HTML：新角色按顺序插入到ALL_CHARS、STATS_MAP、TALENTS_MAP头部"""
     with open(html_path, "r", encoding="utf-8") as f:
         html = f.read()
 
-    # 1. 解析 ALL_CHARS 数组
+    # ── 1. 更新 ALL_CHARS ──
     all_chars_match = re.search(r"const ALL_CHARS\s*=\s*(\[.*?\]);", html, re.DOTALL)
     if not all_chars_match:
         print("错误: 无法找到 ALL_CHARS 定义")
@@ -370,22 +461,18 @@ def update_html(html_path, new_chars):
         print("错误: ALL_CHARS JSON 解析失败")
         return False
 
-    # 2. 按你文件的顺序，插入到 ALL_CHARS 头部
     added = 0
-    # 逆序遍历保证最终顺序和你文件一致
     for char in reversed(new_chars):
-        # 跳过重名角色
         if any(c["name"] == char["name"] for c in all_chars):
             print(f"  跳过已存在的角色: {char['name']}")
             continue
-        # 直接使用你提供的编号生成图片路径
         new_entry = {
             "name": char["name"],
             "rarity": char["rarity"],
             "art": f"art/{char['id']}_{char['name']}.png",
             "avatar": f"images/{char['id']}_{char['name']}.png",
         }
-        all_chars.insert(0, new_entry)  # 插入头部
+        all_chars.insert(0, new_entry)
         added += 1
         print(f"  添加: {char['name']} ({char['rarity']}, 编号{char['id']})")
 
@@ -393,7 +480,6 @@ def update_html(html_path, new_chars):
         print("没有新角色需要添加")
         return False
 
-    # 回写 ALL_CHARS
     new_all_chars_json = json.dumps(all_chars, ensure_ascii=False)
     html = (
         html[: all_chars_match.start()]
@@ -401,13 +487,12 @@ def update_html(html_path, new_chars):
         + html[all_chars_match.end():]
     )
 
-    # 3. 更新 STATS_MAP：新数据放在头部
+    # ── 2. 更新 STATS_MAP ──
     stats_map_match = re.search(r"const STATS_MAP\s*=\s*\{.*?\};", html, re.DOTALL)
     if not stats_map_match:
         print("错误: 无法找到 STATS_MAP 定义")
         return False
 
-    # 解析原有数据
     stats_map_str = (
         stats_map_match.group(0).replace("const STATS_MAP =", "").rstrip(";")
     )
@@ -416,7 +501,6 @@ def update_html(html_path, new_chars):
     except json.JSONDecodeError:
         stats_map = {}
 
-    # 新角色统计数据（放头部）
     new_stats = []
     for char in new_chars:
         if char["name"] in stats_map:
@@ -426,18 +510,68 @@ def update_html(html_path, new_chars):
         best_str = '","'.join(compute_specialty(char["stats"]))
         new_stats.append(f'"{char["name"]}":{{"v":[{v_str}],"best":["{best_str}"]}}')
 
-    # 原有统计数据（放尾部）
     old_stats = []
     for name, data in stats_map.items():
         v_str = ",".join(map(str, data["v"]))
         best_str = '","'.join(data["best"])
         old_stats.append(f'"{name}":{{"v":[{v_str}],"best":["{best_str}"]}}')
 
-    # 合并：新数据在前，旧数据在后
     new_stats_map = f"const STATS_MAP = {{ {','.join(new_stats + old_stats)} }};"
     html = (
         html[: stats_map_match.start()] + new_stats_map + html[stats_map_match.end():]
     )
+
+    # ── 3. 更新 TALENTS_MAP ──
+    if new_talents is None:
+        new_talents = {}
+
+    talents_map_match = re.search(r"const TALENTS_MAP\s*=\s*\{.*?\};", html, re.DOTALL)
+    if not talents_map_match:
+        print("警告: 无法找到 TALENTS_MAP 定义，跳过天赋更新")
+    else:
+        talents_map_str = (
+            talents_map_match.group(0).replace("const TALENTS_MAP =", "").rstrip(";")
+        )
+        try:
+            talents_map = json.loads(talents_map_str.replace("'", '"'))
+        except json.JSONDecodeError:
+            talents_map = {}
+
+        # 插入新天赋数据（放头部）
+        new_talent_entries = []
+        for char in new_chars:
+            name = char["name"]
+            if name in talents_map:
+                print(f"  跳过已存在的天赋数据: {name}")
+                continue
+            if name in new_talents and new_talents[name]:
+                t = new_talents[name]
+                desc_escaped = t["desc"].replace("\\", "\\\\").replace('"', '\\"')
+                name_escaped = t["name"].replace("\\", "\\\\").replace('"', '\\"')
+                new_talent_entries.append(
+                    f'"{name}":{{"name":"{name_escaped}","desc":"{desc_escaped}"}}'
+                )
+                print(f"  添加天赋: {name} - {t['name']}")
+            else:
+                # 没有抓到天赋数据的角色，添加空条目
+                new_talent_entries.append(f'"{name}":{{"name":"","desc":""}}')
+                print(f"  天赋为空: {name}")
+
+        # 原有天赋数据（放尾部）
+        old_talent_entries = []
+        for name, data in talents_map.items():
+            desc_escaped = data["desc"].replace("\\", "\\\\").replace('"', '\\"')
+            name_escaped = data["name"].replace("\\", "\\\\").replace('"', '\\"')
+            old_talent_entries.append(
+                f'"{name}":{{"name":"{name_escaped}","desc":"{desc_escaped}"}}'
+            )
+
+        new_talents_map = f"const TALENTS_MAP = {{ {','.join(new_talent_entries + old_talent_entries)} }};"
+        html = (
+            html[: talents_map_match.start()]
+            + new_talents_map
+            + html[talents_map_match.end():]
+        )
 
     # 写入文件
     with open(html_path, "w", encoding="utf-8") as f:
@@ -491,10 +625,29 @@ if __name__ == "__main__":
     print(f"输出目录: {output_dir}")
     success_chars = fetch_and_save_images(new_chars, output_dir)
 
+    # 抓取天赋数据
+    print("\n=== 从Bilibili Wiki抓取天赋 ===")
+    # 尝试加载本地天赋缓存
+    talent_cache = {}
+    talent_cache_paths = [
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "talents.json"),
+    ]
+    for tp in talent_cache_paths:
+        if os.path.exists(tp):
+            try:
+                with open(tp, "r", encoding="utf-8") as f:
+                    talent_cache = json.load(f)
+                print(f"  已加载天赋缓存: {tp} ({len(talent_cache)} 个角色)")
+                break
+            except Exception:
+                pass
+
+    new_talents = fetch_talents(new_chars, talent_cache)
+
     # 更新HTML
     print("\n=== 更新HTML ===")
     print(f"更新HTML：{html_file}")
-    if update_html(html_file, new_chars):
+    if update_html(html_file, new_chars, new_talents):
         # 提示需要手动复制的文件
         avatar_dir = os.path.join(output_dir, "image")
         art_dir = os.path.join(output_dir, "art")
@@ -506,6 +659,6 @@ if __name__ == "__main__":
             filename = f"{char['id']}_{char['name']}.png"
             print(f"  {avatar_dir}/{filename} -> images/{filename}")
             print(f"  {art_dir}/{filename} -> art/{filename}")
-        print("\n完成！新角色已插入列表头部~")
+        print("\n完成！新角色（含天赋）已插入列表头部~")
     else:
         print("\n未修改任何内容")
